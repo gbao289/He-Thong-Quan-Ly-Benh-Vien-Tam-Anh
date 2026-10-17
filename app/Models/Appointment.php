@@ -1,0 +1,144 @@
+<?php
+
+namespace App\Models;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+class Appointment extends Model
+{
+    use HasFactory;
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const SHIFT_MORNING = 'morning';
+    public const SHIFT_AFTERNOON = 'afternoon';
+
+    protected $fillable = [
+        'appointment_code',
+        'patient_profile_id',
+        'doctor_id',
+        'specialty_id',
+        'appointment_date',
+        'shift',
+        'appointment_time',
+        'symptom_description',
+        'status',
+        'cancellation_reason',
+        'created_by_user_id',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'appointment_date' => 'date',
+        ];
+    }
+
+    public function patientProfile(): BelongsTo
+    {
+        return $this->belongsTo(PatientProfile::class, 'patient_profile_id');
+    }
+
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(Doctor::class, 'doctor_id');
+    }
+
+    public function specialty(): BelongsTo
+    {
+        return $this->belongsTo(Specialty::class, 'specialty_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function medicalRecord(): HasOne
+    {
+        return $this->hasOne(MedicalRecord::class, 'appointment_id');
+    }
+
+    public function scopeToday(Builder $query): Builder
+    {
+        return $query->whereDate('appointment_date', Carbon::today());
+    }
+
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    public function scopeConfirmed(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_CONFIRMED);
+    }
+
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function scopeCancelled(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
+    }
+
+    public function getStatusNameAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PENDING => 'Chờ tiếp nhận',
+            self::STATUS_CONFIRMED => 'Đã tiếp nhận (Chờ khám)',
+            self::STATUS_COMPLETED => 'Đã hoàn thành',
+            self::STATUS_CANCELLED => 'Đã hủy',
+            default => 'Không xác định',
+        };
+    }
+
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PENDING => 'bg-warning text-dark',
+            self::STATUS_CONFIRMED => 'bg-primary text-white',
+            self::STATUS_COMPLETED => 'bg-success text-white',
+            self::STATUS_CANCELLED => 'bg-danger text-white',
+            default => 'bg-secondary text-white',
+        };
+    }
+
+    public function getShiftNameAttribute(): string
+    {
+        return match ($this->shift) {
+            self::SHIFT_MORNING => 'Ca Sáng (07:30 - 11:30)',
+            self::SHIFT_AFTERNOON => 'Ca Chiều (13:30 - 17:00)',
+            default => $this->shift,
+        };
+    }
+
+    public static function generateAppointmentCode(): string
+    {
+        $today = Carbon::now()->format('Ymd');
+        $prefix = "AP-{$today}-";
+
+        $latest = self::where('appointment_code', 'LIKE', "{$prefix}%")
+            ->orderBy('appointment_code', 'desc')
+            ->first();
+
+        if ($latest) {
+            $lastNumber = (int) substr($latest->appointment_code, -4);
+            $nextNumber = str_pad((string)($lastNumber + 1), 4, '0', STR_PAD_LEFT);
+        } else {
+            $nextNumber = '0001';
+        }
+
+        return "{$prefix}{$nextNumber}";
+    }
+}
