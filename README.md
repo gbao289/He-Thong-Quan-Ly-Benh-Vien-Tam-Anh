@@ -75,7 +75,7 @@ erDiagram
   - Màn hình Portal lịch sử khám dành cho bệnh nhân.
 - **Tiêu chí hoàn thành:** Đăng nhập đúng phân quyền, đặt lịch thành công sinh mã và gửi email, chặn trùng ca khám.
 
-### 2. NGUYỄN VÃN ĐẠT (Chuyên khoa & Bác sĩ)
+### 2. NGUYỄN VĂN ĐẠT (Chuyên khoa & Bác sĩ)
 - **Phạm vi phụ trách:**
   - Migration & Seeder bảng: `specialties`, `doctors`, `doctor_schedules`.
   - Thiết lập quan hệ Eloquent giữa Chuyên khoa, Bác sĩ, Lịch trực và User.
