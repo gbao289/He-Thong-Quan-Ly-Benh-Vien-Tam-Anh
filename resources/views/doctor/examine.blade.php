@@ -26,7 +26,7 @@
     <!-- Cột trái: Thông tin Bệnh nhân & Tiền sử khám -->
     <div class="col-lg-4">
         <!-- Thông tin hành chính bệnh nhân -->
-        <div class="card shadow-sm border-0 mb-4 bg-white sticky-top" style="top: 20px; z-index: 10;">
+        <div class="card shadow-sm border-0 mb-4 bg-white">
             <div class="card-header bg-primary text-white py-3">
                 <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-person-vcard fs-5"></i> Thông Tin Hành Chính Bệnh Nhân
@@ -164,7 +164,7 @@
                 <div class="card-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark">
-                            Triệu chứng thực thể khi thăm khám <span class="text-danger">*</span>
+                            Triệu chứng thực tế khi thăm khám <span class="text-danger">*</span>
                         </label>
                         <textarea name="symptoms" class="form-control @error('symptoms') is-invalid @enderror" rows="3" placeholder="Ghi nhận chi tiết: ho sốt, đau ngực, kết quả nghe tim phổi, thể trạng, v.v..." required>{{ old('symptoms', $appointment->symptom_description) }}</textarea>
                         @error('symptoms')
@@ -384,4 +384,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-

@@ -2,8 +2,63 @@
 
 @section('title', 'Hồ Sơ Bệnh Án ' . $record->record_code)
 
+@push('styles')
+    <style>
+        @media print {
+            @page {
+                margin: 15mm;
+            }
+
+            body {
+                display: block !important;
+                background: #fff !important;
+            }
+
+            .sidebar,
+            .top-navbar,
+            footer,
+            .no-print,
+            .main-content > main > .alert {
+                display: none !important;
+            }
+
+            .main-content,
+            .main-content > main {
+                display: block !important;
+                width: 100% !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .main-content > main > .row {
+                display: block !important;
+                margin: 0 !important;
+            }
+
+            .printable-column {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: 0 0 100% !important;
+                padding: 0 !important;
+            }
+
+            .printable-card {
+                width: 100% !important;
+                margin: 0 !important;
+                border: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .printable-card tr {
+                break-inside: avoid;
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 no-print">
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1 small">
@@ -33,7 +88,7 @@
 
 <div class="row g-4">
     <!-- Cột trái: Thông tin chính Bệnh án & Đơn thuốc -->
-    <div class="col-lg-8">
+    <div class="col-lg-8 printable-column">
         <!-- Khối phiếu khám bệnh viện -->
         <div class="card shadow-sm border-0 mb-4 bg-white printable-card">
             <!-- Header chuẩn bệnh viện Tâm Anh -->
@@ -213,7 +268,7 @@
     </div>
 
     <!-- Cột phải: Quản lý File y tế đính kèm & Thao tác -->
-    <div class="col-lg-4">
+    <div class="col-lg-4 no-print">
         <!-- Thông tin ca khám -->
         <div class="card shadow-sm border-0 mb-4 bg-white">
             <div class="card-header bg-white py-3 border-bottom">
@@ -334,4 +389,3 @@
     </div>
 </div>
 @endsection
-
