@@ -34,6 +34,20 @@ class PatientPortalTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_admin_can_view_any_appointment(): void
+    {
+        $admin = User::where('email', 'admin@tamanh.vn')->firstOrFail();
+        $appointment = Appointment::whereHas('patientProfile', function ($query) {
+            $query->where('phone', '0987654321');
+        })->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('patient.appointments.show', $appointment))
+            ->assertOk()
+            ->assertSee($appointment->appointment_code)
+            ->assertSee($appointment->patientProfile->full_name);
+    }
+
     public function test_patient_can_cancel_pending_appointment(): void
     {
         $patientUser = User::where('email', 'patient@gmail.com')->first();

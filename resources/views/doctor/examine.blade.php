@@ -11,34 +11,11 @@
     </x-slot:actions>
 </x-page-header>
 
-<!-- Emergency Clinical Safety Alert Banner (CDSS) -->
-@if($appointment->patientProfile->hasAllergies())
-    <div class="alert alert-danger border-2 border-danger shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle bg-danger text-white p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                <i class="bi bi-shield-exclamation fs-3"></i>
-            </div>
-            <div>
-                <h6 class="fw-bold text-danger mb-0 text-uppercase">
-                    Cảnh Báo An Toàn Người Bệnh: Tiền Sử Dị Ứng Thuốc / Thức Ăn!
-                </h6>
-                <div class="fs-6 fw-bold text-dark mt-1">
-                    {{ $appointment->patientProfile->allergies }}
-                </div>
-                <small class="text-danger">* Bác sĩ thận trọng khi kê đơn, tuyệt đối tránh các nhóm hoạt chất gây nguy cơ sốc phản vệ.</small>
-            </div>
-        </div>
-        <span class="badge bg-danger text-white px-3 py-2 fs-6">
-            <i class="bi bi-exclamation-octagon me-1"></i> BÁO ĐỘNG DỊ ỨNG
-        </span>
-    </div>
-@endif
-
 <div class="row g-4 mb-5">
     <!-- Left Column: Patient Profile & Initial Vitals -->
     <div class="col-lg-4">
         <!-- Patient Demographics Card -->
-        <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 1rem;">
+        <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold mb-0">
                     <i class="bi bi-person-badge me-1"></i> Bệnh Nhân Đang Khám
@@ -50,6 +27,20 @@
                 @endif
             </div>
             <div class="card-body p-3">
+                @if($appointment->patientProfile->hasAllergies())
+                    <div class="alert alert-danger py-2 px-3 mb-3">
+                        <div class="fw-bold">
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i> CẢNH BÁO DỊ ỨNG
+                        </div>
+                        <div class="small mt-1">
+                            Tiền sử dị ứng: {{ $appointment->patientProfile->allergies }}
+                        </div>
+                        <div class="small mt-1">
+                            Bác sĩ cần thận trọng khi kê đơn và tránh các hoạt chất có nguy cơ gây phản ứng dị ứng.
+                        </div>
+                    </div>
+                @endif
+
                 <div class="text-center pb-3 border-bottom">
                     <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center fs-2 mb-2" style="width: 64px; height: 64px;">
                         <i class="bi bi-person-fill"></i>
@@ -179,37 +170,43 @@
                     <span class="badge bg-light text-dark border small">Bác sĩ: {{ Auth::user()->name }}</span>
                 </div>
                 <div class="card-body p-4">
-                    <div class="row g-3">
-                        <!-- Symptoms -->
-                        <div class="col-12">
-                            <label class="form-label fw-semibold small">Triệu chứng lâm sàng ghi nhận: <span class="text-danger">*</span></label>
-                            @php
-                                $defaultSymptoms = preg_replace('/\[Sinh hiệu: .*?\]/', '', preg_replace('/\[ƯU TIÊN\]/', '', $appointment->symptom_description));
-                            @endphp
-                            <textarea name="symptoms" class="form-control @error('symptoms') is-invalid @enderror" rows="2" placeholder="Ghi nhận diễn tiến bệnh, thời gian khởi phát..." required>{{ old('symptoms', trim($defaultSymptoms)) }}</textarea>
-                            @error('symptoms')
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">
+                            Triệu chứng thực tế khi thăm khám <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="symptoms" class="form-control @error('symptoms') is-invalid @enderror" rows="3" placeholder="Ghi nhận chi tiết: ho sốt, đau ngực, kết quả nghe tim phổi, thể trạng, v.v..." required>{{ old('symptoms', $appointment->symptom_description) }}</textarea>
+                        @error('symptoms')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">
+                            Chẩn đoán bệnh xác định <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="diagnosis" class="form-control form-control-lg @error('diagnosis') is-invalid @enderror" placeholder="Ví dụ: Viêm họng cấp / Tăng huyết áp độ II / Viêm dạ dày..." value="{{ old('diagnosis') }}" required>
+                        @error('diagnosis')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                Ghi chú sinh tồn / Cận lâm sàng (Tùy chọn)
+                            </label>
+                            <textarea name="clinical_notes" class="form-control @error('clinical_notes') is-invalid @enderror" rows="3" placeholder="Chỉ số: HA: 120/80 mmHg, Mạch: 75 l/p, SpO2: 99%, Thân nhiệt: 37°C...">{{ old('clinical_notes') }}</textarea>
+                            @error('clinical_notes')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <!-- Diagnosis -->
-                        <div class="col-12">
-                            <label class="form-label fw-semibold small">Chẩn đoán kết luận của bác sĩ: <span class="text-danger">*</span></label>
-                            <input type="text" name="diagnosis" value="{{ old('diagnosis', $appointment->medicalRecord?->diagnosis) }}" class="form-control fw-bold text-primary @error('diagnosis') is-invalid @enderror" placeholder="VD: Viêm họng cấp / Tăng huyết áp độ 1 / Viêm dạ dày tá tràng..." required>
-                            @error('diagnosis')
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Phác đồ / Hướng điều trị:</label>
+                            <textarea name="treatment_plan" class="form-control @error('treatment_plan') is-invalid @enderror" rows="3" placeholder="Nghỉ ngơi, chế độ ăn giảm muối, uống nhiều nước...">{{ old('treatment_plan') }}</textarea>
+                            @error('treatment_plan')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
-
-                        <!-- Clinical Notes & Treatment Plan -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Ghi chú lâm sàng / Cận lâm sàng:</label>
-                            <textarea name="clinical_notes" class="form-control" rows="2" placeholder="Kết quả tim phổi, xét nghiệm máu, X-Quang, siêu âm...">{{ old('clinical_notes', $appointment->medicalRecord?->clinical_notes) }}</textarea>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Phác đồ / Hướng điều trị:</label>
-                            <textarea name="treatment_plan" class="form-control" rows="2" placeholder="Nghỉ ngơi, chế độ ăn giảm muối, uống nhiều nước...">{{ old('treatment_plan', $appointment->medicalRecord?->treatment_plan) }}</textarea>
                         </div>
 
                         <!-- Follow up date -->

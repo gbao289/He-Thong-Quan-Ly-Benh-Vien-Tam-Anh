@@ -7,7 +7,7 @@
     <div class="col-lg-9">
         <x-page-header title="Chi tiết Lịch Hẹn Khám" subtitle="Thông tin đầy đủ về ca khám, kết quả chẩn đoán và đơn thuốc của bạn">
             <x-slot:actions>
-                <a href="{{ route('patient.history') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+                <a href="{{ Auth::user()->isAdmin() ? route('reception.appointments.index') : route('patient.history') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
                     <i class="bi bi-arrow-left"></i> Quay lại danh sách
                 </a>
                 <button type="button" class="btn btn-outline-primary" onclick="window.print();">
@@ -68,16 +68,18 @@
                         <h5 class="fw-bold mb-0 text-success">Kết quả Chẩn đoán Y khoa</h5>
                         <span class="badge bg-light text-muted border">Mã BA: {{ $appointment->medicalRecord->record_code }}</span>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        @if($appointment->medicalRecord->sickLeaveCertificate)
-                            <a href="{{ route('patient.certificates.print', $appointment->medicalRecord->sickLeaveCertificate) }}" target="_blank" class="btn btn-outline-info btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
-                                <i class="bi bi-file-earmark-medical-fill"></i> In Giấy nghỉ việc BHXH (C65-HD)
+                    @if(Auth::user()->isPatient())
+                        <div class="d-flex align-items-center gap-2">
+                            @if($appointment->medicalRecord->sickLeaveCertificate)
+                                <a href="{{ route('patient.certificates.print', $appointment->medicalRecord->sickLeaveCertificate) }}" target="_blank" class="btn btn-outline-info btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
+                                    <i class="bi bi-file-earmark-medical-fill"></i> In Giấy nghỉ việc BHXH (C65-HD)
+                                </a>
+                            @endif
+                            <a href="{{ route('patient.appointments.prescription.print', $appointment) }}" target="_blank" class="btn btn-outline-dark btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-printer-fill"></i> In đơn thuốc ngoại trú (A4/A5)
                             </a>
-                        @endif
-                        <a href="{{ route('patient.appointments.prescription.print', $appointment) }}" target="_blank" class="btn btn-outline-dark btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
-                            <i class="bi bi-printer-fill"></i> In đơn thuốc ngoại trú (A4/A5)
-                        </a>
-                    </div>
+                        </div>
+                    @endif
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3 mb-4">
