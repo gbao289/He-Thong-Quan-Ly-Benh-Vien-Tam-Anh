@@ -49,8 +49,8 @@ class PatientPortalController extends Controller
         $user = Auth::user();
         $patientProfile = PatientProfile::where('user_id', $user->id)->first();
 
-        // Enforce ownership: patient can only view their own appointments
-        if (!$patientProfile || $appointment->patient_profile_id !== $patientProfile->id) {
+        // Patients can only view their own appointments; admins may review any appointment.
+        if (!$user->isAdmin() && (!$patientProfile || $appointment->patient_profile_id !== $patientProfile->id)) {
             abort(403, 'Bạn không có quyền xem thông tin lịch khám này.');
         }
 

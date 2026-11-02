@@ -11,32 +11,11 @@
     </x-slot:actions>
 </x-page-header>
 
-<div class="row g-4">
-    <!-- Cột trái: Thông tin Bệnh nhân & Tiền sử khám -->
-    <div class="col-lg-4">
-        <!-- Thông tin hành chính bệnh nhân -->
-        <div class="card shadow-sm border-0 mb-4 bg-white">
-            <div class="card-header bg-primary text-white py-3">
-                <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-person-vcard fs-5"></i> Thông Tin Hành Chính Bệnh Nhân
-                </h6>
-                <div class="fs-6 fw-bold text-dark mt-1">
-                    {{ $appointment->patientProfile->allergies }}
-                </div>
-                <small class="text-danger">* Bác sĩ thận trọng khi kê đơn, tuyệt đối tránh các nhóm hoạt chất gây nguy cơ sốc phản vệ.</small>
-            </div>
-        </div>
-        <span class="badge bg-danger text-white px-3 py-2 fs-6">
-            <i class="bi bi-exclamation-octagon me-1"></i> BÁO ĐỘNG DỊ ỨNG
-        </span>
-    </div>
-@endif
-
 <div class="row g-4 mb-5">
     <!-- Left Column: Patient Profile & Initial Vitals -->
     <div class="col-lg-4">
         <!-- Patient Demographics Card -->
-        <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 1rem;">
+        <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold mb-0">
                     <i class="bi bi-person-badge me-1"></i> Bệnh Nhân Đang Khám
@@ -48,6 +27,20 @@
                 @endif
             </div>
             <div class="card-body p-3">
+                @if($appointment->patientProfile->hasAllergies())
+                    <div class="alert alert-danger py-2 px-3 mb-3">
+                        <div class="fw-bold">
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i> CẢNH BÁO DỊ ỨNG
+                        </div>
+                        <div class="small mt-1">
+                            Tiền sử dị ứng: {{ $appointment->patientProfile->allergies }}
+                        </div>
+                        <div class="small mt-1">
+                            Bác sĩ cần thận trọng khi kê đơn và tránh các hoạt chất có nguy cơ gây phản ứng dị ứng.
+                        </div>
+                    </div>
+                @endif
+
                 <div class="text-center pb-3 border-bottom">
                     <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center fs-2 mb-2" style="width: 64px; height: 64px;">
                         <i class="bi bi-person-fill"></i>
@@ -208,24 +201,12 @@
                             @enderror
                         </div>
 
-                        <!-- Diagnosis -->
-                        <div class="col-12">
-                            <label class="form-label fw-semibold small">Chẩn đoán kết luận của bác sĩ: <span class="text-danger">*</span></label>
-                            <input type="text" name="diagnosis" value="{{ old('diagnosis', $appointment->medicalRecord?->diagnosis) }}" class="form-control fw-bold text-primary @error('diagnosis') is-invalid @enderror" placeholder="VD: Viêm họng cấp / Tăng huyết áp độ 1 / Viêm dạ dày tá tràng..." required>
-                            @error('diagnosis')
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Phác đồ / Hướng điều trị:</label>
+                            <textarea name="treatment_plan" class="form-control @error('treatment_plan') is-invalid @enderror" rows="3" placeholder="Nghỉ ngơi, chế độ ăn giảm muối, uống nhiều nước...">{{ old('treatment_plan') }}</textarea>
+                            @error('treatment_plan')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
-
-                        <!-- Clinical Notes & Treatment Plan -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Ghi chú lâm sàng / Cận lâm sàng:</label>
-                            <textarea name="clinical_notes" class="form-control" rows="2" placeholder="Kết quả tim phổi, xét nghiệm máu, X-Quang, siêu âm...">{{ old('clinical_notes', $appointment->medicalRecord?->clinical_notes) }}</textarea>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Phác đồ / Hướng điều trị:</label>
-                            <textarea name="treatment_plan" class="form-control" rows="2" placeholder="Nghỉ ngơi, chế độ ăn giảm muối, uống nhiều nước...">{{ old('treatment_plan', $appointment->medicalRecord?->treatment_plan) }}</textarea>
                         </div>
 
                         <!-- Follow up date -->
@@ -647,3 +628,4 @@
     });
 </script>
 @endpush
+@endsection

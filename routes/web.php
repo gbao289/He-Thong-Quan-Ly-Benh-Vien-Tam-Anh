@@ -148,11 +148,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // 1.4. Patient Portal (Lịch sử khám & Kết quả của Bệnh nhân)
 Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
     Route::get('/history', [PatientPortalController::class, 'history'])->name('history');
-    Route::get('/appointments/{appointment}', [PatientPortalController::class, 'showAppointment'])->name('appointments.show');
     Route::get('/appointments/{appointment}/prescription/print', [PatientPortalController::class, 'printPrescription'])->name('appointments.prescription.print');
     Route::get('/certificates/{certificate}/print', [SickLeaveCertificateController::class, 'print'])->name('certificates.print');
     Route::put('/appointments/{appointment}/cancel', [PatientPortalController::class, 'cancelAppointment'])->name('appointments.cancel');
 });
+
+Route::get('/patient/appointments/{appointment}', [PatientPortalController::class, 'showAppointment'])
+    ->middleware(['auth', 'role:patient,admin'])
+    ->name('patient.appointments.show');
 
 
 // =========================================================================

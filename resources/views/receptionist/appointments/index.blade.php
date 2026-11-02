@@ -268,6 +268,9 @@
                             </td>
                             <td class="text-end pe-3">
                                 <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('patient.appointments.show', $app) }}" class="btn btn-outline-primary" title="Xem chi tiết lịch khám và kết quả">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
                                     <button type="button" class="btn btn-outline-info" title="Gọi loa phát thanh mời vào phòng khám"
                                         onclick="callPatientVoice('{{ addslashes($app->patientProfile->full_name) }}', '{{ $app->queue_number }}', '{{ addslashes($app->doctor ? ($app->doctor->room_number ?? '1') : '1') }}', '{{ addslashes($app->doctor ? $app->doctor->full_name_with_title : '') }}')">
                                         <i class="bi bi-megaphone-fill text-primary"></i>
