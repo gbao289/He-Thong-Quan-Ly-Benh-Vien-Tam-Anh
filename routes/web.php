@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\DoctorManagementController;
+use App\Http\Controllers\Admin\DoctorRosterController;
 use App\Http\Controllers\Admin\SpecialtyController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
@@ -83,8 +84,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Trang chủ công khai (Landing Page)
+// Trang chủ công khai (Landing Page) & Giới thiệu
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
 
 // =========================================================================
 // ====== MODULE 1: AUTH & BOOKING (Phụ trách: NGUYỄN THÀNH QUÝ) ===========
@@ -163,16 +165,25 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/specialties/{specialty}/toggle-status', [SpecialtyController::class, 'toggleStatus'])->name('specialties.toggle-status');
     Route::resource('specialties', SpecialtyController::class);
 
-    // Quản lý Bác sĩ & Lịch trực tuần
+    // Quản lý Bác sĩ & Lịch trực tuần & Nghỉ phép
+    Route::get('/roster', [DoctorRosterController::class, 'index'])->name('roster');
     Route::get('/doctors/{doctor}/schedule', [DoctorManagementController::class, 'schedule'])->name('doctors.schedule');
     Route::put('/doctors/{doctor}/schedule', [DoctorManagementController::class, 'updateSchedule'])->name('doctors.schedule.update');
+    Route::get('/doctors/{doctor}/leaves', [DoctorManagementController::class, 'leaves'])->name('doctors.leaves');
+    Route::post('/doctors/{doctor}/leaves', [DoctorManagementController::class, 'storeLeave'])->name('doctors.leaves.store');
+    Route::delete('/doctors/leaves/{leave}', [DoctorManagementController::class, 'destroyLeave'])->name('doctors.leaves.destroy');
     Route::patch('/doctors/{doctor}/toggle-availability', [DoctorManagementController::class, 'toggleAvailability'])->name('doctors.toggle-availability');
     Route::resource('doctors', DoctorManagementController::class);
 });
 
-// Cổng thông tin công chúng: Danh bạ Bác sĩ
+// Cổng thông tin công chúng: Danh bạ Bác sĩ & Trợ lý Triệu chứng
 Route::prefix('doctors')->name('public.doctors.')->group(function () {
     Route::get('/', [DoctorPublicController::class, 'index'])->name('index');
+    Route::get('/symptom-checker', [DoctorPublicController::class, 'symptomChecker'])->name('symptom_checker');
+    Route::post('/symptom-match', [DoctorPublicController::class, 'matchSymptoms'])->name('symptom_match');
+    Route::get('/{doctor}/vcard', [DoctorPublicController::class, 'downloadVcard'])->name('vcard');
+    Route::get('/{doctor}/desk-card', [DoctorPublicController::class, 'deskCard'])->name('desk_card');
+    Route::get('/{doctor}/print', [DoctorPublicController::class, 'printProfile'])->name('print');
     Route::get('/{doctor}', [DoctorPublicController::class, 'show'])->name('show');
 });
 

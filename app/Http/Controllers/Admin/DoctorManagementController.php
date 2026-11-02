@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDoctorRequest;
 use App\Http\Requests\UpdateDoctorRequest;
 use App\Models\Doctor;
+use App\Models\DoctorLeave;
 use App\Models\DoctorSchedule;
 use App\Models\Specialty;
 use App\Models\User;
@@ -13,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class DoctorManagementController extends Controller
@@ -47,7 +49,14 @@ class DoctorManagementController extends Controller
         $doctors = $query->latest()->paginate(10)->withQueryString();
         $specialties = Specialty::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.doctors.index', compact('doctors', 'specialties'));
+        $stats = [
+            'total' => Doctor::count(),
+            'available' => Doctor::where('is_available', true)->count(),
+            'unavailable' => Doctor::where('is_available', false)->count(),
+            'rooms_count' => Doctor::distinct('room_number')->count('room_number'),
+        ];
+
+        return view('admin.doctors.index', compact('doctors', 'specialties', 'stats'));
     }
 
     /**
@@ -87,12 +96,18 @@ class DoctorManagementController extends Controller
                 $userId = $user->id;
             }
 
+            $avatarPath = null;
+            if ($request->hasFile('avatar')) {
+                $avatarPath = $request->file('avatar')->store('doctors', 'public');
+            }
+
             $doctor = Doctor::create([
                 'user_id' => $userId,
                 'specialty_id' => $data['specialty_id'],
                 'qualification' => $data['qualification'],
                 'consultation_fee' => $data['consultation_fee'],
                 'room_number' => $data['room_number'],
+                'avatar' => $avatarPath,
                 'bio' => $data['bio'] ?? null,
                 'is_available' => $request->has('is_available'),
             ]);
@@ -166,15 +181,24 @@ class DoctorManagementController extends Controller
                 ]);
             }
 
-            // Update Doctor profile
-            $doctor->update([
+            $updateFields = [
                 'specialty_id' => $data['specialty_id'],
                 'qualification' => $data['qualification'],
                 'consultation_fee' => $data['consultation_fee'],
                 'room_number' => $data['room_number'],
                 'bio' => $data['bio'] ?? null,
                 'is_available' => $request->has('is_available'),
-            ]);
+            ];
+
+            if ($request->hasFile('avatar')) {
+                if ($doctor->avatar && Storage::disk('public')->exists($doctor->avatar)) {
+                    Storage::disk('public')->delete($doctor->avatar);
+                }
+                $updateFields['avatar'] = $request->file('avatar')->store('doctors', 'public');
+            }
+
+            // Update Doctor profile
+            $doctor->update($updateFields);
         });
 
         return redirect()->route('admin.doctors.index')
@@ -189,6 +213,10 @@ class DoctorManagementController extends Controller
         if ($doctor->appointments()->whereIn('status', ['pending', 'confirmed'])->exists()) {
             return redirect()->route('admin.doctors.index')
                 ->with('error', 'Không thể xóa bác sĩ này vì đang có lịch hẹn khám sắp tới hoặc đang chờ xử lý.');
+        }
+
+        if ($doctor->avatar && Storage::disk('public')->exists($doctor->avatar)) {
+            Storage::disk('public')->delete($doctor->avatar);
         }
 
         $doctor->delete();
@@ -270,5 +298,56 @@ class DoctorManagementController extends Controller
 
         $statusText = $doctor->is_available ? 'sẵn sàng khám' : 'tạm dừng nhận khám';
         return back()->with('success', "Đã chuyển trạng thái bác sĩ sang: {$statusText}!");
+    }
+
+    /**
+     * View and manage leave / vacation requests for the doctor.
+     */
+    public function leaves(Doctor $doctor): View
+    {
+        $doctor->load(['user', 'specialty', 'leaves.substituteDoctor.user']);
+
+        // Doctors in same specialty excluding current doctor
+        $compatibleDoctors = Doctor::with('user')
+            ->where('specialty_id', $doctor->specialty_id)
+            ->where('id', '!=', $doctor->id)
+            ->where('is_available', true)
+            ->get();
+
+        $leaves = $doctor->leaves()->with('substituteDoctor.user')->latest('start_date')->get();
+
+        return view('admin.doctors.leaves', compact('doctor', 'leaves', 'compatibleDoctors'));
+    }
+
+    /**
+     * Store a new doctor leave request with optional substitute doctor.
+     */
+    public function storeLeave(Request $request, Doctor $doctor): RedirectResponse
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string|max:255',
+            'substitute_doctor_id' => 'nullable|exists:doctors,id|different:doctor_id',
+            'status' => 'required|in:approved,pending,cancelled',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $doctor->leaves()->create($validated);
+
+        return redirect()->route('admin.doctors.leaves', $doctor)
+            ->with('success', 'Đã ghi nhận lịch nghỉ phép / công tác cho bác sĩ thành công!');
+    }
+
+    /**
+     * Delete or cancel a doctor leave request.
+     */
+    public function destroyLeave(DoctorLeave $leave): RedirectResponse
+    {
+        $doctorId = $leave->doctor_id;
+        $leave->delete();
+
+        return redirect()->route('admin.doctors.leaves', $doctorId)
+            ->with('success', 'Đã hủy lịch nghỉ phép thành công!');
     }
 }

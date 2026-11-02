@@ -165,11 +165,61 @@ class DoctorSpecialtyTest extends TestCase
         }
     }
 
+    public function test_admin_can_upload_avatar_for_doctor(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $doctor = Doctor::first();
+        if ($doctor && $doctor->user) {
+            $file = \Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 300, 300);
+
+            $response = $this->actingAs($this->admin)->put(route('admin.doctors.update', $doctor), [
+                'name' => $doctor->user->name,
+                'email' => $doctor->user->email,
+                'specialty_id' => $doctor->specialty_id,
+                'qualification' => $doctor->qualification,
+                'room_number' => $doctor->room_number,
+                'consultation_fee' => $doctor->consultation_fee,
+                'avatar' => $file,
+            ]);
+
+            $response->assertRedirect(route('admin.doctors.index'));
+            $doctor->refresh();
+            $this->assertNotNull($doctor->avatar);
+            \Illuminate\Support\Facades\Storage::disk('public')->assertExists($doctor->avatar);
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_public_can_view_about_page(): void
+    {
+        $response = $this->get(route('about'));
+        $response->assertStatus(200);
+        $response->assertSee('TẬN TÂM VÌ SỨC KHỎE NGƯỜI BỆNH');
+    }
+
     public function test_public_can_view_doctors_directory(): void
     {
         $response = $this->get(route('public.doctors.index'));
         $response->assertStatus(200);
         $response->assertSee('Danh Bạ Bác Sĩ Bệnh Viện Tâm Anh');
+    }
+
+    public function test_public_can_filter_doctors_on_duty_today(): void
+    {
+        $response = $this->get(route('public.doctors.index', ['on_duty_today' => 1]));
+        $response->assertStatus(200);
+        $response->assertSee('Chỉ hiển thị bác sĩ có lịch trực hôm nay');
+    }
+
+    public function test_public_can_live_search_doctors_via_ajax(): void
+    {
+        $response = $this->get(route('public.doctors.index', ['search' => 'Bác sĩ']), [
+            'HTTP_X-Requested-With' => 'XMLHttpRequest',
+        ]);
+        $response->assertStatus(200);
+        $response->assertSee('Đặt lịch khám');
     }
 
     public function test_public_can_view_single_doctor(): void
@@ -178,6 +228,123 @@ class DoctorSpecialtyTest extends TestCase
         if ($doctor) {
             $response = $this->get(route('public.doctors.show', $doctor));
             $response->assertStatus(200);
+            $response->assertSee($doctor->full_name_with_title);
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_public_can_view_symptom_checker_page(): void
+    {
+        $response = $this->get(route('public.doctors.symptom_checker'));
+        $response->assertStatus(200);
+        $response->assertSee('Trợ Lý Gợi Ý Chuyên Khoa & Bác Sĩ Thông Minh');
+    }
+
+    public function test_public_can_match_symptoms_via_api(): void
+    {
+        $response = $this->postJson(route('public.doctors.symptom_match'), [
+            'symptoms' => 'Tôi bị đau thắt ngực khi gắng sức và tim đập nhanh hồi hộp',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'has_match' => true,
+        ]);
+        $response->assertJsonPath('specialty.name', 'Tim mạch học');
+    }
+
+    public function test_public_can_download_doctor_vcard(): void
+    {
+        $doctor = Doctor::where('is_available', true)->first();
+        if ($doctor) {
+            $response = $this->get(route('public.doctors.vcard', $doctor));
+            $response->assertStatus(200);
+            $response->assertHeader('content-type', 'text/vcard; charset=utf-8');
+            $this->assertStringContainsString('BEGIN:VCARD', $response->getContent());
+            $this->assertStringContainsString('END:VCARD', $response->getContent());
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_public_can_view_doctor_desk_card(): void
+    {
+        $doctor = Doctor::where('is_available', true)->first();
+        if ($doctor) {
+            $response = $this->get(route('public.doctors.desk_card', $doctor));
+            $response->assertStatus(200);
+            $response->assertSee('Bảng Tên Để Bàn');
+            $response->assertSee($doctor->room_number);
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_admin_can_view_doctor_leaves_page(): void
+    {
+        $doctor = Doctor::first();
+        if ($doctor) {
+            $response = $this->actingAs($this->admin)->get(route('admin.doctors.leaves', $doctor));
+            $response->assertStatus(200);
+            $response->assertSee('Quản Lý Nghỉ Phép & Ủy Quyền Trực Thay');
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_admin_can_store_and_delete_doctor_leave(): void
+    {
+        $doctor = Doctor::first();
+        if ($doctor) {
+            $response = $this->actingAs($this->admin)->post(route('admin.doctors.leaves.store', $doctor), [
+                'start_date' => now()->toDateString(),
+                'end_date' => now()->addDays(3)->toDateString(),
+                'reason' => 'Tham dự Hội nghị Y khoa Quốc tế',
+                'status' => 'approved',
+                'notes' => 'Kiểm thử nghỉ phép tự động',
+            ]);
+
+            $response->assertRedirect(route('admin.doctors.leaves', $doctor));
+            $this->assertDatabaseHas('doctor_leaves', [
+                'doctor_id' => $doctor->id,
+                'reason' => 'Tham dự Hội nghị Y khoa Quốc tế',
+                'status' => 'approved',
+            ]);
+
+            $this->assertTrue($doctor->fresh()->isOnLeave());
+
+            $leave = $doctor->leaves()->latest()->first();
+            $deleteResponse = $this->actingAs($this->admin)->delete(route('admin.doctors.leaves.destroy', $leave));
+            $deleteResponse->assertRedirect(route('admin.doctors.leaves', $doctor));
+            $this->assertDatabaseMissing('doctor_leaves', ['id' => $leave->id]);
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_admin_can_view_roster_matrix_page(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.roster'));
+        $response->assertStatus(200);
+        $response->assertSee('Ma Trận Phân Ca Trực Tuần Bệnh Viện');
+        $response->assertSee('Bảng Lưới Phân Bổ 7 Ngày Trong Tuần');
+    }
+
+    public function test_non_admin_cannot_access_roster(): void
+    {
+        $user = User::factory()->create(['role' => 'patient']);
+        $response = $this->actingAs($user)->get(route('admin.roster'));
+        $response->assertStatus(403);
+    }
+
+    public function test_public_can_view_doctor_print_profile(): void
+    {
+        $doctor = Doctor::where('is_available', true)->first();
+        if ($doctor) {
+            $response = $this->get(route('public.doctors.print', $doctor));
+            $response->assertStatus(200);
+            $response->assertSee('BẢN GIỚI THIỆU HỒ SƠ NĂNG LỰC CHUYÊN MÔN BÁC SĨ');
             $response->assertSee($doctor->full_name_with_title);
         } else {
             $this->assertTrue(true);

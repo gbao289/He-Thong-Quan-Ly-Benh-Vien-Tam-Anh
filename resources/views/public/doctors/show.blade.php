@@ -18,8 +18,12 @@
     <div class="col-lg-4">
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
             <div class="card-body p-4 text-center">
-                <div class="rounded-circle bg-light text-primary d-inline-flex align-items-center justify-content-center mb-3 fs-1" style="width: 100px; height: 100px; border: 3px solid #e2e8f0;">
-                    <i class="bi bi-person-badge"></i>
+                <div class="rounded-circle bg-light text-primary d-inline-flex align-items-center justify-content-center mb-3 fs-1 overflow-hidden" style="width: 100px; height: 100px; border: 3px solid #e2e8f0;">
+                    @if($doctor->avatar_url)
+                        <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->full_name_with_title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    @else
+                        <i class="bi bi-person-badge"></i>
+                    @endif
                 </div>
                 <h3 class="fw-bold text-dark mb-1">{{ $doctor->full_name_with_title }}</h3>
                 <div class="mb-3">
@@ -41,10 +45,34 @@
                     </div>
                 </div>
 
-                <div class="d-grid">
+                <div class="d-grid mb-3">
                     <a href="{{ route('booking.create') }}?doctor_id={{ $doctor->id }}&specialty_id={{ $doctor->specialty_id }}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
                         <i class="bi bi-calendar-check me-1"></i> Đặt lịch khám với Bác sĩ
                     </a>
+                </div>
+
+                <!-- Digital Business Card & Smart QR -->
+                <div class="border-top pt-3 mt-2 text-center">
+                    <div class="d-inline-flex align-items-center gap-1 text-primary small fw-semibold mb-2">
+                        <i class="bi bi-qr-code"></i> Danh thiếp số & Mã QR Bác sĩ
+                    </div>
+                    <div class="p-2 bg-white rounded-3 border d-inline-block shadow-xs mb-2">
+                        <img src="{{ $qrCodeUrl }}" alt="QR Bác sĩ {{ $doctor->full_name_with_title }}" class="img-fluid" style="width: 140px; height: 140px;">
+                    </div>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">
+                        Quét bằng Camera điện thoại để lưu danh bạ hoặc đặt lịch khám nhanh.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ route('public.doctors.vcard', $doctor) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold">
+                            <i class="bi bi-person-lines-fill me-1"></i> Lưu vào Danh bạ (.vcf)
+                        </a>
+                        <a href="{{ route('public.doctors.desk_card', $doctor) }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill">
+                            <i class="bi bi-printer me-1"></i> In Bảng tên để bàn phòng khám
+                        </a>
+                        <a href="{{ route('public.doctors.print', $doctor) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Xuất Hồ Sơ Y Khoa (PDF/In)
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -65,6 +93,33 @@
 
     <!-- Doctor Details & Schedules -->
     <div class="col-lg-8">
+        @if($doctor->current_leave)
+            <div class="alert alert-warning border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="fs-2 text-warning">
+                        <i class="bi bi-calendar2-range-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="alert-heading fw-bold mb-1">
+                            Thông báo vắng mặt: {{ $doctor->current_leave->reason }}
+                        </h6>
+                        <p class="mb-2 small text-dark">
+                            Bác sĩ có kế hoạch công tác / vắng mặt từ ngày <strong>{{ $doctor->current_leave->start_date->format('d/m/Y') }}</strong> đến ngày <strong>{{ $doctor->current_leave->end_date->format('d/m/Y') }}</strong>.
+                        </p>
+                        @if($doctor->current_leave->substituteDoctor)
+                            <div class="p-2 bg-white rounded-3 border d-inline-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-pill"><i class="bi bi-shield-check"></i> Bác sĩ trực thay</span>
+                                <span class="fw-bold text-dark">{{ $doctor->current_leave->substituteDoctor->full_name_with_title }}</span>
+                                <a href="{{ route('public.doctors.show', $doctor->current_leave->substituteDoctor) }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 ms-2">
+                                    Xem hồ sơ BS trực thay
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Bio -->
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-header bg-white py-3 border-bottom">
@@ -99,8 +154,18 @@
                         </thead>
                         <tbody>
                             @forelse($doctor->schedules->sortBy('id') as $sched)
-                                <tr>
-                                    <td class="ps-4 fw-bold text-dark">{{ $sched->day_name }}</td>
+                                @php
+                                    $isToday = (strtolower(now()->format('l')) === $sched->day_of_week);
+                                @endphp
+                                <tr class="{{ $isToday ? 'table-warning bg-opacity-25' : '' }}">
+                                    <td class="ps-4 fw-bold text-dark">
+                                        {{ $sched->day_name }}
+                                        @if($isToday)
+                                            <span class="badge bg-warning text-dark border border-warning ms-1" style="font-size: 0.7rem;">
+                                                <i class="bi bi-star-fill me-1"></i> Hôm nay
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <span class="badge {{ $sched->shift === 'morning' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-info-subtle text-info border border-info-subtle' }} rounded-pill px-3 py-1">
                                             {{ $sched->shift === 'morning' ? 'Ca Sáng' : 'Ca Chiều' }}
