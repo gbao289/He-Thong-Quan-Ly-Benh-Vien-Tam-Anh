@@ -46,7 +46,40 @@ class AdminDashboardController extends Controller
             'completion_rate' => $completionRate,
         ];
 
-        // Biểu đồ 1: Phân bổ trạng thái tất cả ca hẹn
+        // Financial & Efficiency KPIs
+        $todayRevenue = (float) Appointment::whereDate('appointment_date', $today)
+            ->whereIn('status', [Appointment::STATUS_CONFIRMED, Appointment::STATUS_COMPLETED])
+            ->join('doctors', 'appointments.doctor_id', '=', 'doctors.id')
+            ->sum('doctors.consultation_fee');
+
+        $monthRevenue = (float) Appointment::whereYear('appointment_date', $today->year)
+            ->whereMonth('appointment_date', $today->month)
+            ->whereIn('status', [Appointment::STATUS_CONFIRMED, Appointment::STATUS_COMPLETED])
+            ->join('doctors', 'appointments.doctor_id', '=', 'doctors.id')
+            ->sum('doctors.consultation_fee');
+
+        // 7-day appointment trend data for Chart.js
+        $trendLabels = [];
+        $trendMorning = [];
+        $trendAfternoon = [];
+        $trendTotal = [];
+        $trend7Days = collect();
+
+        for ($i = 6; $i >= 0; $i--) {
+            $d = Carbon::today()->subDays($i);
+            $trendLabels[] = $d->format('d/m');
+            $mCount = Appointment::whereDate('appointment_date', $d)->where('shift', 'morning')->count();
+            $aCount = Appointment::whereDate('appointment_date', $d)->where('shift', 'afternoon')->count();
+            $trendMorning[] = $mCount;
+            $trendAfternoon[] = $aCount;
+            $trendTotal[] = $mCount + $aCount;
+            $trend7Days->push([
+                'label' => $d->format('d/m'),
+                'count' => $mCount + $aCount,
+            ]);
+        }
+
+        // Status Chart Data
         $statusChartData = [
             'pending' => $stats['appointments_pending'],
             'confirmed' => $stats['appointments_confirmed'],
@@ -54,25 +87,18 @@ class AdminDashboardController extends Controller
             'cancelled' => $stats['appointments_cancelled'],
         ];
 
-        // Biểu đồ 2: Xu hướng lượt khám 7 ngày gần đây
-        $trend7Days = collect();
-        for ($i = 6; $i >= 0; $i--) {
-            $day = Carbon::today()->subDays($i);
-            $trend7Days->push([
-                'label' => $day->format('d/m'),
-                'count' => Appointment::whereDate('appointment_date', $day)->count(),
-            ]);
-        }
-
-        // Biểu đồ 3: Phân bổ ca khám theo chuyên khoa
-        $specialtyStats = Specialty::withCount('appointments')
-            ->orderBy('appointments_count', 'desc')
+        // Specialty distribution data for Doughnut Chart
+        $specialtyDistribution = Specialty::withCount('appointments')
+            ->orderByDesc('appointments_count')
             ->take(6)
             ->get();
+        $specialtyLabels = $specialtyDistribution->pluck('name')->toArray();
+        $specialtyCounts = $specialtyDistribution->pluck('appointments_count')->toArray();
+        $specialtyStats = $specialtyDistribution;
 
         $recentAppointments = Appointment::with(['patientProfile', 'doctor.user', 'specialty'])
             ->latest()
-            ->take(7)
+            ->take(8)
             ->get();
 
         $recentRecords = MedicalRecord::with(['patientProfile', 'doctor.user', 'appointment'])
@@ -82,8 +108,17 @@ class AdminDashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats',
-            'statusChartData',
+            'todayRevenue',
+            'monthRevenue',
+            'completionRate',
+            'trendLabels',
+            'trendMorning',
+            'trendAfternoon',
+            'trendTotal',
             'trend7Days',
+            'statusChartData',
+            'specialtyLabels',
+            'specialtyCounts',
             'specialtyStats',
             'recentAppointments',
             'recentRecords'

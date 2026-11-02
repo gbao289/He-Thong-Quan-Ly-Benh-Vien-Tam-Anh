@@ -59,9 +59,31 @@ class PatientPortalController extends Controller
             'doctor.user',
             'medicalRecord.prescriptions',
             'medicalRecord.attachments',
+            'medicalRecord.sickLeaveCertificate',
         ]);
 
         return view('patient.appointment-detail', compact('appointment', 'patientProfile'));
+    }
+
+    /**
+     * Patient prints their official prescription.
+     */
+    public function printPrescription(Appointment $appointment): View
+    {
+        $user = Auth::user();
+        $patientProfile = PatientProfile::where('user_id', $user->id)->first();
+
+        if (!$patientProfile || $appointment->patient_profile_id !== $patientProfile->id) {
+            abort(403, 'Bạn không có quyền in đơn thuốc này.');
+        }
+
+        if (!$appointment->medicalRecord) {
+            abort(404, 'Lịch khám này chưa có đơn thuốc.');
+        }
+
+        $record = $appointment->medicalRecord->load(['appointment.specialty', 'patientProfile', 'doctor.user', 'prescriptions']);
+
+        return view('doctor.records.print', compact('record'));
     }
 
     /**

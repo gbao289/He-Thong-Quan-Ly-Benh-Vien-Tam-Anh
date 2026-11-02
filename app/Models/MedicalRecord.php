@@ -22,12 +22,16 @@ class MedicalRecord extends Model
         'clinical_notes',
         'treatment_plan',
         'follow_up_date',
+        'dispensed_at',
+        'dispensed_by_user_id',
+        'dispense_notes',
     ];
 
     protected function casts(): array
     {
         return [
             'follow_up_date' => 'date',
+            'dispensed_at' => 'datetime',
         ];
     }
 
@@ -46,6 +50,11 @@ class MedicalRecord extends Model
         return $this->belongsTo(Doctor::class);
     }
 
+    public function dispensedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dispensed_by_user_id');
+    }
+
     public function prescriptions(): HasMany
     {
         return $this->hasMany(Prescription::class);
@@ -56,22 +65,36 @@ class MedicalRecord extends Model
         return $this->hasMany(Attachment::class);
     }
 
+    public function sickLeaveCertificate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(SickLeaveCertificate::class);
+    }
+
+    public function isDispensed(): bool
+    {
+        return !is_null($this->dispensed_at);
+    }
+
     public static function generateRecordCode(): string
     {
         $today = Carbon::now()->format('Ymd');
         $prefix = "MR-{$today}-";
 
-        $latest = self::where('record_code', 'LIKE', "{$prefix}%")
+        $latest = self::where('record_code', 'LIKE', "{$prefix}____")
             ->orderBy('record_code', 'desc')
             ->first();
 
-        if ($latest) {
-            $lastNumber = (int) substr($latest->record_code, -4);
-            $nextNumber = str_pad((string)($lastNumber + 1), 4, '0', STR_PAD_LEFT);
+        if ($latest && preg_match('/-(\d{4})$/', $latest->record_code, $matches)) {
+            $nextNumber = (int) $matches[1] + 1;
         } else {
-            $nextNumber = '0001';
+            $nextNumber = 1;
         }
 
-        return "{$prefix}{$nextNumber}";
+        do {
+            $candidate = sprintf('%s%04d', $prefix, $nextNumber);
+            $nextNumber++;
+        } while (self::where('record_code', $candidate)->exists());
+
+        return $candidate;
     }
 }

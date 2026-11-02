@@ -33,12 +33,23 @@ class Appointment extends Model
         'status',
         'cancellation_reason',
         'created_by_user_id',
+        'esi_level',
+        'esi_criteria',
+        'triage_notes',
+        'triaged_by_user_id',
+        'triaged_at',
+        'called_at',
+        'counter_number',
     ];
 
     protected function casts(): array
     {
         return [
             'appointment_date' => 'date',
+            'esi_level' => 'integer',
+            'esi_criteria' => 'array',
+            'triaged_at' => 'datetime',
+            'called_at' => 'datetime',
         ];
     }
 
@@ -62,9 +73,69 @@ class Appointment extends Model
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    public function triagedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'triaged_by_user_id');
+    }
+
+    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PatientInvoice::class);
+    }
+
+    public function getEsiInfoAttribute(): array
+    {
+        return \App\Services\EmergencyTriageService::ESI_LEVELS[$this->esi_level ?? 5] ?? \App\Services\EmergencyTriageService::ESI_LEVELS[5];
+    }
+
+    public function getEsiBadgeAttribute(): string
+    {
+        return \App\Services\EmergencyTriageService::renderBadge($this->esi_level ?? 5);
+    }
+
+    public function scopePriorityEsiOrder(Builder $query): Builder
+    {
+        return $query->orderBy('esi_level', 'asc')->orderBy('created_at', 'asc');
+    }
+
     public function medicalRecord(): HasOne
     {
         return $this->hasOne(MedicalRecord::class, 'appointment_id');
+    }
+
+    public function vitals(): HasMany
+    {
+        return $this->hasMany(PatientVital::class, 'appointment_id');
+    }
+
+    public function notifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PatientNotification::class);
+    }
+
+    public function dayBedAdmissions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DayBedAdmission::class);
+    }
+
+    public function clinicalConsultations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ClinicalConsultation::class);
+    }
+
+    public function vaccinationRecords(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VaccinationRecord::class);
+    }
+
+    public function surveys(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PatientSurvey::class);
+    }
+
+    public function latestVital(): HasOne
+    {
+        return $this->hasOne(PatientVital::class, 'appointment_id')->latestOfMany('recorded_at');
     }
 
     public function scopeToday(Builder $query): Builder
@@ -123,22 +194,51 @@ class Appointment extends Model
         };
     }
 
+    public function getQueueNumberAttribute(): int
+    {
+        return self::where('doctor_id', $this->doctor_id)
+            ->whereDate('appointment_date', $this->appointment_date)
+            ->where('shift', $this->shift)
+            ->where('id', '<=', $this->id)
+            ->count();
+    }
+
+    public function getWaitingMinutesAttribute(): int
+    {
+        if ($this->status !== self::STATUS_CONFIRMED) {
+            return 0;
+        }
+        return (int) Carbon::now()->diffInMinutes($this->updated_at);
+    }
+
+    public function getIsPriorityAttribute(): bool
+    {
+        if ($this->patientProfile && $this->patientProfile->dob) {
+            $age = $this->patientProfile->dob->age;
+            if ($age >= 75 || $age <= 1) {
+                return true;
+            }
+        }
+        return str_contains($this->symptom_description ?? '', '[ƯU TIÊN]');
+    }
+
     public static function generateAppointmentCode(): string
     {
         $today = Carbon::now()->format('Ymd');
         $prefix = "AP-{$today}-";
 
-        $latest = self::where('appointment_code', 'LIKE', "{$prefix}%")
-            ->orderBy('appointment_code', 'desc')
-            ->first();
+        // Generate 4-character alphanumeric token (avoiding ambiguous chars 0, O, 1, I)
+        $charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+        $charsetLen = strlen($charset);
 
-        if ($latest) {
-            $lastNumber = (int) substr($latest->appointment_code, -4);
-            $nextNumber = str_pad((string)($lastNumber + 1), 4, '0', STR_PAD_LEFT);
-        } else {
-            $nextNumber = '0001';
-        }
+        do {
+            $token = '';
+            for ($i = 0; $i < 4; $i++) {
+                $token .= $charset[random_int(0, $charsetLen - 1)];
+            }
+            $code = "{$prefix}{$token}";
+        } while (self::where('appointment_code', $code)->exists());
 
-        return "{$prefix}{$nextNumber}";
+        return $code;
     }
 }

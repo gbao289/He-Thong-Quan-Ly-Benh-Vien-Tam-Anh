@@ -1,26 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Bàn Khám Bệnh - Bác Sĩ')
+@section('title', 'Bàn Khám Bác Sĩ - Bệnh Viện Tâm Anh')
 
 @section('content')
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1 small">
-                <li class="breadcrumb-item"><a href="{{ route('doctor.queue') }}" class="text-decoration-none">Hàng đợi khám</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Bàn khám bệnh</li>
-            </ol>
-        </nav>
-        <h3 class="fw-bold text-dark mb-0">
-            <i class="bi bi-stethoscope text-primary me-2"></i>Bàn Khám Bệnh & Lập Bệnh Án
-        </h3>
-    </div>
-    <div>
-        <a href="{{ route('doctor.queue') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại hàng đợi
+<x-page-header title="Bàn Khám Bệnh Ngoại Trú" subtitle="Bàn Khám Bệnh & Lập Bệnh Án - Ghi nhận hồ sơ bệnh án, chẩn đoán lâm sàng và kê đơn thuốc điều trị">
+    <x-slot:actions>
+        <a href="{{ route('doctor.queue') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-arrow-left"></i> Quay lại hàng đợi
         </a>
-    </div>
-</div>
+    </x-slot:actions>
+</x-page-header>
 
 <div class="row g-4">
     <!-- Cột trái: Thông tin Bệnh nhân & Tiền sử khám -->
@@ -31,135 +20,161 @@
                 <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-person-vcard fs-5"></i> Thông Tin Hành Chính Bệnh Nhân
                 </h6>
+                <div class="fs-6 fw-bold text-dark mt-1">
+                    {{ $appointment->patientProfile->allergies }}
+                </div>
+                <small class="text-danger">* Bác sĩ thận trọng khi kê đơn, tuyệt đối tránh các nhóm hoạt chất gây nguy cơ sốc phản vệ.</small>
+            </div>
+        </div>
+        <span class="badge bg-danger text-white px-3 py-2 fs-6">
+            <i class="bi bi-exclamation-octagon me-1"></i> BÁO ĐỘNG DỊ ỨNG
+        </span>
+    </div>
+@endif
+
+<div class="row g-4 mb-5">
+    <!-- Left Column: Patient Profile & Initial Vitals -->
+    <div class="col-lg-4">
+        <!-- Patient Demographics Card -->
+        <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 1rem;">
+            <div class="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-person-badge me-1"></i> Bệnh Nhân Đang Khám
+                </h6>
+                @if($appointment->is_priority)
+                    <span class="badge bg-danger text-white border border-white small">
+                        <i class="bi bi-star-fill text-warning me-1"></i> ƯU TIÊN
+                    </span>
+                @endif
             </div>
             <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fs-2" style="width: 54px; height: 54px;">
+                <div class="text-center pb-3 border-bottom">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center fs-2 mb-2" style="width: 64px; height: 64px;">
                         <i class="bi bi-person-fill"></i>
                     </div>
-                    <div>
-                        <h5 class="fw-bold mb-0 text-dark">{{ $appointment->patientProfile->full_name }}</h5>
-                        <span class="badge bg-primary font-monospace">{{ $appointment->patientProfile->patient_code }}</span>
+                    <h5 class="fw-bold text-dark text-uppercase mb-0">{{ $appointment->patientProfile->full_name }}</h5>
+                    <div class="text-muted small">
+                        Mã BN: <strong class="font-monospace text-primary">{{ $appointment->patientProfile->patient_code }}</strong>
                     </div>
                 </div>
 
-                <ul class="list-unstyled mb-0 small">
-                    <li class="mb-2 d-flex justify-content-between">
-                        <span class="text-muted">Giới tính:</span>
-                        <strong class="text-dark">{{ $appointment->patientProfile->gender_name }}</strong>
+                <ul class="list-unstyled mb-0 py-3 d-flex flex-column gap-2 small border-bottom">
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Tuổi / Giới tính:</span>
+                        <strong class="text-dark">{{ $appointment->patientProfile->age_text }} &bull; {{ $appointment->patientProfile->gender_name }}</strong>
                     </li>
-                    <li class="mb-2 d-flex justify-content-between">
-                        <span class="text-muted">Ngày sinh / Tuổi:</span>
-                        <strong class="text-dark">
-                            {{ $appointment->patientProfile->dob ? $appointment->patientProfile->dob->format('d/m/Y') . ' (' . $appointment->patientProfile->dob->age . ' tuổi)' : '—' }}
-                        </strong>
-                    </li>
-                    <li class="mb-2 d-flex justify-content-between">
+                    <li class="d-flex justify-content-between">
                         <span class="text-muted">Số điện thoại:</span>
-                        <strong class="text-dark">{{ $appointment->patientProfile->phone }}</strong>
+                        <span class="font-monospace fw-semibold">{{ $appointment->patientProfile->phone }}</span>
                     </li>
-                    <li class="mb-2 d-flex justify-content-between">
-                        <span class="text-muted">Số CCCD / CMT:</span>
-                        <span class="text-dark">{{ $appointment->patientProfile->identity_card ?? 'Chưa cập nhật' }}</span>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Mã lịch hẹn:</span>
+                        <span class="font-monospace fw-bold text-primary">{{ $appointment->appointment_code }}</span>
                     </li>
-                    <li class="mb-2 d-flex justify-content-between">
-                        <span class="text-muted">Mã BHYT:</span>
-                        <span class="text-dark">{{ $appointment->patientProfile->insurance_code ?? 'Khám dịch vụ' }}</span>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Nhóm máu:</span>
+                        <span class="badge bg-danger text-white font-monospace">{{ $appointment->patientProfile->blood_group ?: 'Chưa xác định' }}</span>
                     </li>
-                    <li class="mb-3 d-flex justify-content-between">
-                        <span class="text-muted">Địa chỉ:</span>
-                        <span class="text-dark text-end" style="max-width: 60%;">{{ $appointment->patientProfile->address ?? '—' }}</span>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Số thứ tự khám:</span>
+                        <span class="badge bg-primary text-white font-monospace fs-6">#{{ str_pad($appointment->queue_number, 2, '0', STR_PAD_LEFT) }}</span>
                     </li>
                 </ul>
 
-                <div class="p-3 bg-light rounded-3 border">
-                    <div class="small fw-bold text-primary mb-1">
-                        <i class="bi bi-calendar-check me-1"></i> Thông tin ca hẹn hiện tại:
+                @if($appointment->patientProfile->hasMedicalHistory())
+                    <div class="p-2 mt-2 bg-warning bg-opacity-10 rounded border border-warning small">
+                        <strong class="text-warning-emphasis d-block"><i class="bi bi-activity me-1"></i> Bệnh nền / Tiền sử:</strong>
+                        <span class="text-dark">{{ $appointment->patientProfile->medical_history }}</span>
                     </div>
-                    <div class="small text-muted mb-1">
-                        Mã hẹn: <strong class="text-dark font-monospace">{{ $appointment->appointment_code }}</strong>
-                    </div>
-                    <div class="small text-muted mb-1">
-                        Ca trực: <strong>{{ $appointment->shift_name }}</strong> &bull; Ngày: {{ $appointment->appointment_date->format('d/m/Y') }}
-                    </div>
-                    <div class="small text-muted">
-                        Chuyên khoa: <strong>{{ $appointment->specialty->name }}</strong>
-                    </div>
-                    @if($appointment->symptom_description)
-                        <hr class="my-2">
-                        <div class="small text-danger fw-semibold">
-                            <i class="bi bi-exclamation-circle me-1"></i> Triệu chứng bệnh nhân khai báo:
+                @endif
+
+                <!-- Initial Vitals Intake from Reception Desk -->
+                <div class="pt-3">
+                    <h6 class="fw-bold small text-info-emphasis text-uppercase mb-2">
+                        <i class="bi bi-heart-pulse-fill text-danger me-1"></i> Sinh hiệu đo tại quầy đón tiếp:
+                    </h6>
+                    @if(str_contains($appointment->symptom_description ?? '', '[Sinh hiệu:'))
+                        @php
+                            preg_match('/\[Sinh hiệu: (.*?)\]/', $appointment->symptom_description, $vMatch);
+                            $vitalsStr = $vMatch[1] ?? '';
+                            $cleanDesc = trim(preg_replace('/\[Sinh hiệu: .*?\]/', '', preg_replace('/\[ƯU TIÊN\]/', '', $appointment->symptom_description)));
+                        @endphp
+                        <div class="p-2 bg-info bg-opacity-10 rounded border border-info small mb-2 text-dark">
+                            <strong>{{ $vitalsStr }}</strong>
                         </div>
-                        <div class="small text-dark fst-italic mt-1 bg-white p-2 rounded border">
-                            "{{ $appointment->symptom_description }}"
+                        <div class="small text-muted">
+                            Lý do bệnh nhân đến khám: <br>
+                            <span class="text-dark fw-medium">{{ $cleanDesc ?: 'Khám chuyên khoa' }}</span>
+                        </div>
+                    @else
+                        <div class="p-2 bg-light rounded border small text-muted">
+                            {{ $appointment->symptom_description }}
                         </div>
                     @endif
                 </div>
             </div>
         </div>
 
-        <!-- Tiền sử khám bệnh của bệnh nhân -->
-        <div class="card shadow-sm border-0 mb-4 bg-white">
-            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0 text-dark">
-                    <i class="bi bi-clock-history text-secondary me-2"></i>Tiền Sử Bệnh Án Trước Đây
-                </h6>
-                <span class="badge bg-secondary">{{ $pastRecords->count() }} lần</span>
-            </div>
-            <div class="card-body p-3">
-                @forelse($pastRecords as $idx => $record)
-                    <div class="border rounded-3 p-3 mb-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <strong class="font-monospace text-primary small">{{ $record->record_code }}</strong>
-                            <small class="text-muted">{{ $record->created_at->format('d/m/Y') }}</small>
-                        </div>
-                        <div class="small mb-1">
-                            <span class="text-muted">Chẩn đoán:</span>
-                            <strong class="text-danger">{{ $record->diagnosis }}</strong>
-                        </div>
-                        <div class="small mb-2 text-muted">
-                            Bác sĩ: {{ $record->doctor->full_name_with_title ?? 'Bác sĩ viện' }}
-                        </div>
-                        @if($record->prescriptions->isNotEmpty())
-                            <div class="small text-muted">
-                                <strong>Đơn thuốc ({{ $record->prescriptions->count() }} loại):</strong>
-                                <ul class="mb-0 ps-3">
-                                    @foreach($record->prescriptions->take(3) as $rx)
-                                        <li>{{ $rx->medication_name }} ({{ $rx->dosage }}) - {{ $rx->frequency }}</li>
-                                    @endforeach
-                                    @if($record->prescriptions->count() > 3)
-                                        <li class="fst-italic text-secondary">và {{ $record->prescriptions->count() - 3 }} loại khác...</li>
-                                    @endif
-                                </ul>
+        <!-- Past Medical History Accordion -->
+        @if(isset($pastRecords) && $pastRecords->isNotEmpty())
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold text-dark mb-0 small text-uppercase">
+                        <i class="bi bi-clock-history me-1"></i> Tiền Sử Khám Cũ ({{ $pastRecords->count() }} lần)
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <div class="accordion accordion-flush" id="pastRecordsAccordion">
+                        @foreach($pastRecords as $idx => $past)
+                            <div class="accordion-item border-bottom">
+                                <h2 class="accordion-header" id="heading-{{ $past->id }}">
+                                    <button class="accordion-button collapsed py-2 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $past->id }}">
+                                        <div>
+                                            <strong>{{ $past->created_at->format('d/m/Y') }}</strong>:
+                                            <span class="text-primary">{{ $past->diagnosis }}</span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse-{{ $past->id }}" class="accordion-collapse collapse" data-bs-parent="#pastRecordsAccordion">
+                                    <div class="accordion-body p-2 small bg-light">
+                                        <div class="mb-1"><strong>Bác sĩ:</strong> {{ $past->doctor ? $past->doctor->full_name_with_title : '--' }}</div>
+                                        <div class="mb-1"><strong>Triệu chứng:</strong> {{ $past->symptoms }}</div>
+                                        @if($past->treatment_plan)
+                                            <div class="mb-1"><strong>Điều trị:</strong> {{ $past->treatment_plan }}</div>
+                                        @endif
+                                        @if($past->prescriptions->count() > 0)
+                                            <div class="mt-2 pt-1 border-top">
+                                                <strong>Thuốc đã kê:</strong>
+                                                <ul class="mb-0 ps-3">
+                                                    @foreach($past->prescriptions as $p)
+                                                        <li>{{ $p->medication_name }} ({{ $p->dosage }})</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                        @endif
-                        <div class="mt-2 text-end">
-                            <a href="{{ route('doctor.records.show', $record->id) }}" target="_blank" class="small text-decoration-none">
-                                Xem chi tiết lần khám này <i class="bi bi-box-arrow-up-right"></i>
-                            </a>
-                        </div>
+                        @endforeach
                     </div>
-                @empty
-                    <div class="text-center py-4 text-muted small">
-                        <i class="bi bi-folder2-open fs-2 d-block mb-1 text-secondary opacity-50"></i>
-                        Bệnh nhân chưa có lịch sử khám trước đây tại hệ thống.
-                    </div>
-                @endforelse
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 
-    <!-- Cột phải: Form Bàn khám & Đơn thuốc -->
+    <!-- Right Column: Medical Record Examination Form & Prescriptions -->
     <div class="col-lg-8">
-        <form action="{{ route('doctor.records.store') }}" method="POST" id="examineForm">
+        <form method="POST" action="{{ route('doctor.examine.store', $appointment) }}" id="examinationForm" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="appointment_id" value="{{ $appointment->id }}">
 
-            <!-- Khối 1: Khám lâm sàng & Chẩn đoán -->
-            <div class="card shadow-sm border-0 mb-4 bg-white">
-                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
-                    <span class="badge bg-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">1</span>
-                    <h5 class="fw-bold mb-0 text-dark">Khám Lâm Sàng & Kết Luận Chẩn Đoán</h5>
+            <!-- 1. Clinical Diagnosis Section -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold text-primary mb-0">
+                        <i class="bi bi-clipboard2-pulse-fill me-1"></i> 1. Chẩn Đoán & Khám Lâm Sàng
+                    </h6>
+                    <span class="badge bg-light text-dark border small">Bác sĩ: {{ Auth::user()->name }}</span>
                 </div>
                 <div class="card-body p-4">
                     <div class="mb-3">
@@ -192,195 +207,443 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark">
-                                Kế hoạch điều trị & Dặn dò chế độ sinh hoạt
-                            </label>
-                            <textarea name="treatment_plan" class="form-control @error('treatment_plan') is-invalid @enderror" rows="3" placeholder="Nghỉ ngơi, uống nhiều nước ấm, hạn chế đồ cay nóng, tập thể dục nhẹ...">{{ old('treatment_plan') }}</textarea>
-                            @error('treatment_plan')
+
+                        <!-- Diagnosis -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Chẩn đoán kết luận của bác sĩ: <span class="text-danger">*</span></label>
+                            <input type="text" name="diagnosis" value="{{ old('diagnosis', $appointment->medicalRecord?->diagnosis) }}" class="form-control fw-bold text-primary @error('diagnosis') is-invalid @enderror" placeholder="VD: Viêm họng cấp / Tăng huyết áp độ 1 / Viêm dạ dày tá tràng..." required>
+                            @error('diagnosis')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                    </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-dark">
-                            Hẹn ngày tái khám (Nếu cần)
-                        </label>
-                        <input type="date" name="follow_up_date" class="form-control @error('follow_up_date') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('follow_up_date') }}">
-                        <div class="form-text">Để trống nếu không chỉ định lịch hẹn tái khám.</div>
-                        @error('follow_up_date')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <!-- Clinical Notes & Treatment Plan -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Ghi chú lâm sàng / Cận lâm sàng:</label>
+                            <textarea name="clinical_notes" class="form-control" rows="2" placeholder="Kết quả tim phổi, xét nghiệm máu, X-Quang, siêu âm...">{{ old('clinical_notes', $appointment->medicalRecord?->clinical_notes) }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Phác đồ / Hướng điều trị:</label>
+                            <textarea name="treatment_plan" class="form-control" rows="2" placeholder="Nghỉ ngơi, chế độ ăn giảm muối, uống nhiều nước...">{{ old('treatment_plan', $appointment->medicalRecord?->treatment_plan) }}</textarea>
+                        </div>
+
+                        <!-- Follow up date -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Hẹn ngày tái khám (nếu có):</label>
+                            <input type="date" name="follow_up_date" min="{{ date('Y-m-d') }}" value="{{ old('follow_up_date', $appointment->medicalRecord?->follow_up_date?->format('Y-m-d')) }}" class="form-control form-control-sm">
+                            <div class="form-text small">Hệ thống sẽ đồng bộ lịch tái khám vào cổng hồ sơ của bệnh nhân.</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Khối 2: Kê đơn thuốc ngoại trú (Dynamic Form Repeater) -->
-            <div class="card shadow-sm border-0 mb-4 bg-white">
-                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">2</span>
-                        <h5 class="fw-bold mb-0 text-dark">Đơn Thuốc Điều Trị Ngoại Trú</h5>
+            <!-- 2. Dynamic Prescription Builder -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div>
+                        <h6 class="fw-bold text-success mb-0">
+                            <i class="bi bi-capsule-pill me-1"></i> 2. Kê Đơn Thuốc Ngoại Trú (Prescription)
+                        </h6>
+                        <small class="text-muted">Kê đơn thuốc điều trị ngoại trú theo danh mục thuốc chuẩn Bộ Y Tế</small>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="addPrescriptionBtn">
-                        <i class="bi bi-plus-circle me-1"></i> Thêm dòng thuốc
-                    </button>
+
+                    <!-- Quick medication dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success btn-sm dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-lightning-charge-fill me-1"></i> Chọn thuốc nhanh mẫu
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" style="max-height: 320px; overflow-y: auto; min-width: 300px;">
+                            @foreach($commonMeds as $m)
+                                <li>
+                                    <a class="dropdown-item small d-flex justify-content-between align-items-center py-2" href="javascript:void(0)" onclick="addQuickMedication('{{ addslashes($m['name']) }}', '{{ addslashes($m['dosage']) }}', '{{ addslashes($m['frequency']) }}', '{{ $m['duration'] }}', '{{ addslashes($m['instructions']) }}')">
+                                        <div>
+                                            <strong>{{ $m['name'] }}</strong>
+                                            <div class="text-muted" style="font-size: 0.72rem;">{{ $m['dosage'] }} &bull; {{ $m['frequency'] }}</div>
+                                        </div>
+                                        @if(isset($m['stock_quantity']))
+                                            @if(!empty($m['is_out_of_stock']))
+                                                <span class="badge bg-danger ms-2">Hết hàng</span>
+                                            @elseif($m['stock_quantity'] <= 50)
+                                                <span class="badge bg-warning text-dark ms-2">Còn {{ $m['stock_quantity'] }}</span>
+                                            @else
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">Kho: {{ $m['stock_quantity'] }}</span>
+                                            @endif
+                                        @endif
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
+
+                <div class="card-body p-3">
+                    <div id="prescriptionItemsContainer">
+                        <!-- Prescription Rows inserted here by JS -->
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1 shadow-sm" onclick="addPrescriptionRow()">
+                            <i class="bi bi-plus-circle-fill"></i> Thêm thuốc khác
+                        </button>
+                        <span class="text-muted small">
+                            <i class="bi bi-shield-check text-success me-1"></i>Đang bật kiểm tra Tương tác thuốc (DDI) & An toàn dị ứng thời gian thực
+                        </span>
+                    </div>
+
+                    <!-- Clinical Drug-Drug Interaction (DDI) Alert Box -->
+                    <div id="ddiAlertContainer" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- 3. Medical Attachments Section (X-Quang, CT/MRI, Siêu Âm, Kết Quả Xét Nghiệm) -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold text-info-emphasis mb-0">
+                            <i class="bi bi-paperclip me-1"></i> 3. Cận Lâm Sàng & Tệp Đính Kèm (X-Quang, MRI, Siêu Âm, Xét Nghiệm)
+                        </h6>
+                        <small class="text-muted">Tải lên phim X-Quang, ảnh siêu âm, phiếu xét nghiệm (Định dạng JPG, PNG, WEBP, PDF &bull; Tối đa 10MB/tệp)</small>
+                    </div>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle small">PACS / Cloud Storage</span>
+                </div>
+
                 <div class="card-body p-4">
-                    <p class="text-muted small mb-3">
-                        <i class="bi bi-info-circle me-1 text-primary"></i>
-                        Bác sĩ nhập danh sách thuốc điều trị. Có thể bấm <strong>"Thêm dòng thuốc"</strong> để kê nhiều loại thuốc trong một đơn.
-                    </p>
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle" id="prescriptionTable">
-                            <thead class="table-light text-center small">
-                                <tr>
-                                    <th style="width: 30%;">Tên thuốc & hàm lượng <span class="text-danger">*</span></th>
-                                    <th style="width: 18%;">Liều lượng <span class="text-danger">*</span></th>
-                                    <th style="width: 20%;">Tần suất dùng <span class="text-danger">*</span></th>
-                                    <th style="width: 12%;">Số ngày <span class="text-danger">*</span></th>
-                                    <th style="width: 15%;">Cách dùng</th>
-                                    <th style="width: 50px;">Xóa</th>
-                                </tr>
-                            </thead>
-                            <tbody id="prescriptionTbody">
-                                @php
-                                    $oldPrescriptions = old('prescriptions', [
-                                        ['medication_name' => '', 'dosage' => '', 'frequency' => '', 'duration_days' => 5, 'instructions' => '']
-                                    ]);
-                                @endphp
-
-                                @foreach($oldPrescriptions as $index => $rx)
-                                    <tr class="prescription-row">
-                                        <td>
-                                            <input type="text" name="prescriptions[{{ $index }}][medication_name]" class="form-control form-control-sm" placeholder="VD: Paracetamol 500mg" value="{{ $rx['medication_name'] ?? '' }}">
-                                        </td>
-                                        <td>
-                                            <input type="text" name="prescriptions[{{ $index }}][dosage]" class="form-control form-control-sm" placeholder="VD: 1 viên" value="{{ $rx['dosage'] ?? '' }}">
-                                        </td>
-                                        <td>
-                                            <input type="text" name="prescriptions[{{ $index }}][frequency]" class="form-control form-control-sm" placeholder="VD: 2 lần/ngày sau ăn" value="{{ $rx['frequency'] ?? '' }}">
-                                        </td>
-                                        <td>
-                                            <input type="number" name="prescriptions[{{ $index }}][duration_days]" class="form-control form-control-sm text-center" min="1" max="365" placeholder="5" value="{{ $rx['duration_days'] ?? 5 }}">
-                                        </td>
-                                        <td>
-                                            <input type="text" name="prescriptions[{{ $index }}][instructions]" class="form-control form-control-sm" placeholder="VD: Uống lúc no" value="{{ $rx['instructions'] ?? '' }}">
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-danger remove-rx-btn" title="Xóa dòng thuốc">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
+                    @if(isset($appointment->medicalRecord) && $appointment->medicalRecord->attachments->isNotEmpty())
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted text-uppercase">Tệp cận lâm sàng đã có trong bệnh án:</label>
+                            <div class="row g-2">
+                                @foreach($appointment->medicalRecord->attachments as $att)
+                                    <div class="col-sm-6 col-md-4">
+                                        <div class="p-2 border rounded bg-light d-flex align-items-center gap-2">
+                                            @if($att->is_image)
+                                                <img src="{{ $att->url }}" alt="{{ $att->original_name }}" class="rounded border object-fit-cover" style="width: 44px; height: 44px;">
+                                            @else
+                                                <div class="rounded bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                                    <i class="bi bi-file-earmark-pdf fs-4"></i>
+                                                </div>
+                                            @endif
+                                            <div class="flex-grow-1 text-truncate">
+                                                <a href="{{ $att->url }}" target="_blank" class="small fw-semibold text-truncate d-block text-decoration-none">
+                                                    {{ $att->original_name }}
+                                                </a>
+                                                <div class="text-muted" style="font-size: 0.72rem;">
+                                                    {{ $att->formatted_size }} &bull; {{ $att->file_type }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                        </div>
+                    @endif
 
-                    <div class="mt-2 text-end">
-                        <button type="button" class="btn btn-sm btn-light border text-primary" id="addPrescriptionBtnSecondary">
-                            <i class="bi bi-plus-lg me-1"></i> Thêm thuốc khác
-                        </button>
+                    <div class="border border-dashed rounded p-3 bg-light bg-opacity-25">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-7">
+                                <label class="form-label small fw-semibold">Chọn tệp tải lên bổ sung:</label>
+                                <input type="file" name="attachments[]" id="attachmentInput" class="form-control form-control-sm" multiple accept="image/jpeg,image/png,image/webp,application/pdf" onchange="previewSelectedAttachments(this)">
+                                <div class="form-text small">Có thể giữ phím Ctrl để chọn cùng lúc nhiều tệp X-quang/kết quả xét nghiệm.</div>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Phân loại tệp:</label>
+                                <select name="attachment_types[]" class="form-select form-select-sm">
+                                    <option value="x_ray">Phim X-Quang / CT / MRI / Siêu âm</option>
+                                    <option value="lab_result">Kết quả Xét nghiệm Máu / Sinh hóa</option>
+                                    <option value="prescription_scan">Scan đơn thuốc cũ / Hồ sơ tuyến dưới</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Client-side Preview of selected files -->
+                        <div id="attachmentsPreviewList" class="row g-2 mt-2" style="display: none;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Khối 3: Nút Lưu và Xác nhận -->
-            <div class="card shadow-sm border-0 mb-4 bg-white">
-                <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <div class="text-muted small">
-                        <i class="bi bi-shield-check text-success me-1"></i>
-                        Hệ thống sẽ thực hiện giao dịch tự động <strong>DB::transaction</strong> để lưu hồ sơ bệnh án, kê đơn thuốc và chuyển trạng thái ca khám sang <strong>Đã khám hoàn tất (Completed)</strong>.
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('doctor.queue') }}" class="btn btn-outline-secondary">
-                            Hủy bỏ
-                        </a>
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm" id="submitExamineBtn">
-                            <i class="bi bi-check2-circle me-1"></i> Lưu Bệnh Án & Hoàn Tất Khám
-                        </button>
-                    </div>
-                </div>
+            <!-- Submit Action Card -->
+            <div class="d-flex justify-content-end gap-2 mb-5">
+                <a href="{{ route('doctor.queue') }}" class="btn btn-light px-4">Hủy / Quay lại</a>
+                <button type="submit" class="btn btn-success px-4 py-2 d-inline-flex align-items-center gap-2 fw-semibold shadow-sm">
+                    <i class="bi bi-check2-circle fs-5"></i> Lưu Bệnh Án & Hoàn Tất Ca Khám
+                </button>
             </div>
         </form>
     </div>
 </div>
-@endsection
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const tbody = document.getElementById('prescriptionTbody');
-    const addBtn = document.getElementById('addPrescriptionBtn');
-    const addBtnSecondary = document.getElementById('addPrescriptionBtnSecondary');
-    const form = document.getElementById('examineForm');
+    let prescriptionIndex = 0;
 
-    let rowIndex = {{ count($oldPrescriptions) }};
+    const patientAllergies = "{{ addslashes(mb_strtolower($appointment->patientProfile->allergies ?? '')) }}";
 
-    function addRow() {
-        const tr = document.createElement('tr');
-        tr.className = 'prescription-row';
-        tr.innerHTML = `
-            <td>
-                <input type="text" name="prescriptions[${rowIndex}][medication_name]" class="form-control form-control-sm" placeholder="VD: Amoxicillin 500mg" required>
-            </td>
-            <td>
-                <input type="text" name="prescriptions[${rowIndex}][dosage]" class="form-control form-control-sm" placeholder="VD: 1 viên/lần" required>
-            </td>
-            <td>
-                <input type="text" name="prescriptions[${rowIndex}][frequency]" class="form-control form-control-sm" placeholder="VD: 2 lần/ngày sáng-chiều" required>
-            </td>
-            <td>
-                <input type="number" name="prescriptions[${rowIndex}][duration_days]" class="form-control form-control-sm text-center" min="1" max="365" value="5" required>
-            </td>
-            <td>
-                <input type="text" name="prescriptions[${rowIndex}][instructions]" class="form-control form-control-sm" placeholder="VD: Uống sau ăn">
-            </td>
-            <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger remove-rx-btn" title="Xóa dòng thuốc">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-        rowIndex++;
-    }
+    function checkAllergyConflict(inputEl, idx) {
+        if (!patientAllergies || patientAllergies.includes('không') || patientAllergies.includes('none')) return;
 
-    if (addBtn) addBtn.addEventListener('click', addRow);
-    if (addBtnSecondary) addBtnSecondary.addEventListener('click', addRow);
+        const val = inputEl.value.trim().toLowerCase();
+        const alertContainer = document.getElementById(`allergy-alert-${idx}`);
+        if (!alertContainer) return;
 
-    // Xóa dòng thuốc khi bấm nút thùng rác
-    tbody.addEventListener('click', function (e) {
-        const btn = e.target.closest('.remove-rx-btn');
-        if (btn) {
-            const rows = tbody.querySelectorAll('.prescription-row');
-            if (rows.length > 1) {
-                btn.closest('tr').remove();
-            } else {
-                // Nếu chỉ còn 1 dòng, clear nội dung thay vì xóa
-                const inputs = btn.closest('tr').querySelectorAll('input');
-                inputs.forEach(input => input.value = '');
+        // Common cross-reactivity mapping for clinical decision support
+        const rules = [
+            { trigger: ['penicillin', 'amox', 'augmentin', 'clavam'], match: ['penicillin', 'amoxicillin', 'ampicillin', 'augmentin'] },
+            { trigger: ['aspirin', 'nsaid', 'ibuprofen', 'meloxicam', 'diclofenac'], match: ['aspirin', 'nsaid', 'ibuprofen'] },
+            { trigger: ['paracetamol', 'panadol', 'efferalgan', 'acetaminophen'], match: ['paracetamol', 'panadol', 'acetaminophen'] },
+            { trigger: ['cephalo', 'cefixim', 'ceftriaxon', 'cefaclor'], match: ['cephalo', 'cefixim', 'cefaclor'] },
+        ];
+
+        let hasConflict = false;
+        if (val.length >= 3) {
+            // Check direct match with patient's allergy string
+            const allergyWords = patientAllergies.split(/[,;\/\s]+/).filter(w => w.length >= 3);
+            for (const word of allergyWords) {
+                if (val.includes(word)) {
+                    hasConflict = true;
+                    break;
+                }
+            }
+
+            // Check clinical cross-reactivity rules
+            if (!hasConflict) {
+                for (const rule of rules) {
+                    const matchAllergy = rule.match.some(m => patientAllergies.includes(m));
+                    const matchDrug = rule.trigger.some(t => val.includes(t));
+                    if (matchAllergy && matchDrug) {
+                        hasConflict = true;
+                        break;
+                    }
+                }
             }
         }
-    });
 
-    // Xác nhận trước khi hoàn tất lưu bệnh án
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            const submitBtn = document.getElementById('submitExamineBtn');
-            if (!confirm('Bác sĩ có chắc chắn muốn lưu hồ sơ bệnh án và hoàn tất ca khám cho bệnh nhân này?')) {
-                e.preventDefault();
-                return false;
+        if (hasConflict) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-danger py-1 px-2 mt-2 mb-0 small text-danger fw-bold border border-danger d-flex align-items-center gap-1 shadow-sm">
+                    <i class="bi bi-exclamation-triangle-fill fs-6"></i>
+                    <span>CẢNH BÁO DƯỢC LÂM SÀNG: Thuốc này có thể gây dị ứng/sốc phản vệ cho bệnh nhân (Tiền sử: "${patientAllergies}")!</span>
+                </div>
+            `;
+            inputEl.classList.add('is-invalid');
+        } else {
+            alertContainer.innerHTML = '';
+            inputEl.classList.remove('is-invalid');
+        }
+    }
+
+    function addPrescriptionRow(medName = '', dosage = '', frequency = '', duration = 5, instructions = '') {
+        const container = document.getElementById('prescriptionItemsContainer');
+        const idx = prescriptionIndex++;
+
+        const rowHtml = `
+            <div class="card border rounded p-3 mb-2 bg-light bg-opacity-50 prescription-row" id="pres-row-${idx}">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                    <span class="badge bg-secondary font-monospace small">Thuốc #${idx + 1}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removePrescriptionRow(${idx})" title="Xóa dòng thuốc">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold mb-1">Tên thuốc & Hàm lượng: <span class="text-danger">*</span></label>
+                        <input type="text" name="prescriptions[${idx}][medication_name]" value="${medName}" class="form-control form-control-sm fw-semibold" placeholder="VD: Augmentin 1g" required oninput="checkAllergyConflict(this, ${idx})">
+                        <div id="allergy-alert-${idx}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Liều lượng:</label>
+                        <input type="text" name="prescriptions[${idx}][dosage]" value="${dosage}" class="form-control form-control-sm" placeholder="VD: 1 viên/lần" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Tần suất uống:</label>
+                        <input type="text" name="prescriptions[${idx}][frequency]" value="${frequency}" class="form-control form-control-sm" placeholder="VD: Ngày 2 lần (sáng, tối)" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Số ngày dùng:</label>
+                        <input type="number" name="prescriptions[${idx}][duration_days]" value="${duration}" min="1" max="90" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label small fw-semibold mb-1">Lời dặn / Hướng dẫn uống:</label>
+                        <input type="text" name="prescriptions[${idx}][instructions]" value="${instructions}" class="form-control form-control-sm" placeholder="VD: Uống sau bữa ăn no 15 phút...">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', rowHtml);
+
+        const insertedInput = document.querySelector(`input[name="prescriptions[${idx}][medication_name]"]`);
+        if (insertedInput) {
+            insertedInput.addEventListener('input', function() {
+                checkAllergyConflict(this, idx);
+                runDdiInteractionCheck();
+            });
+            if (medName) {
+                checkAllergyConflict(insertedInput, idx);
             }
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Đang lưu bệnh án...';
+        }
+        runDdiInteractionCheck();
+    }
+
+    function removePrescriptionRow(idx) {
+        const row = document.getElementById(`pres-row-${idx}`);
+        if (row) row.remove();
+        runDdiInteractionCheck();
+    }
+
+    // Drug-Drug Interaction (DDI) Client Engine
+    const ddiRules = [
+        {
+            a: ['aspirin', 'aspilet'],
+            b: ['ibuprofen', 'diclofenac', 'meloxicam', 'celecoxib'],
+            severity: 'danger',
+            title: 'Tương tác Chống chỉ định: Nguy cơ xuất huyết tiêu hóa & thủng dạ dày',
+            desc: 'Dùng chung Aspirin với NSAID làm tăng gấp 5 lần nguy cơ loét và xuất huyết dạ dày tá tràng nặng.',
+            advice: 'Đổi sang Paracetamol hoặc bổ sung thuốc ức chế bơm proton (Nexium 40mg).'
+        },
+        {
+            a: ['paracetamol', 'panadol', 'efferalgan'],
+            b: ['paracetamol', 'panadol', 'efferalgan', 'hapacol'],
+            severity: 'danger',
+            title: 'Trùng lặp hoạt chất Paracetamol: Nguy cơ hoại tử tế bào gan cấp',
+            desc: 'Đơn thuốc chứa từ 2 chế phẩm có cùng Paracetamol, rất dễ vượt ngưỡng ngộ độc 4g/ngày.',
+            advice: 'Chỉ chọn 1 biệt dược giảm đau hạ sốt duy nhất.'
+        },
+        {
+            a: ['clarithromycin', 'erythromycin'],
+            b: ['amlodipine', 'amlodipin', 'simvastatin', 'atorvastatin'],
+            severity: 'danger',
+            title: 'Tương tác ức chế men gan CYP3A4 nguy cơ cao',
+            desc: 'Macrolid làm tăng vọt nồng độ Amlodipine/Statin gây tụt huyết áp nghiêm trọng hoặc tiêu cơ vân.',
+            advice: 'Cân nhắc chuyển sang Augmentin hoặc tạm ngưng thuốc tim mạch trong đợt kháng sinh.'
+        },
+        {
+            a: ['ciprofloxacin', 'levofloxacin'],
+            b: ['canxi', 'calcium', 'sat', 'iron', 'antacid'],
+            severity: 'warning',
+            title: 'Tương tác tạo phức Chelate giảm hấp thu kháng sinh',
+            desc: 'Các ion kim loại làm giảm hấp thu kháng sinh đường ruột tới 80%.',
+            advice: 'Uống kháng sinh cách thuốc bổ sung canxi/sắt ít nhất 2 đến 4 giờ.'
+        }
+    ];
+
+    function runDdiInteractionCheck() {
+        const ddiContainer = document.getElementById('ddiAlertContainer');
+        if (!ddiContainer) return;
+
+        const inputs = Array.from(document.querySelectorAll('input[name^="prescriptions"][name$="[medication_name]"]'));
+        const meds = inputs.map(i => (i.value || '').trim().toLowerCase()).filter(v => v.length >= 3);
+
+        const foundAlerts = [];
+
+        for (let i = 0; i < meds.length; i++) {
+            for (let j = i + 1; j < meds.length; j++) {
+                const medA = meds[i];
+                const medB = meds[j];
+
+                ddiRules.forEach(r => {
+                    const matchAB = r.a.some(k => medA.includes(k)) && r.b.some(k => medB.includes(k));
+                    const matchBA = r.a.some(k => medB.includes(k)) && r.b.some(k => medA.includes(k));
+
+                    if (matchAB || matchBA) {
+                        foundAlerts.push({
+                            ...r,
+                            pair: `${inputs[i].value} & ${inputs[j].value}`
+                        });
+                    }
+                });
             }
+        }
+
+        if (foundAlerts.length === 0) {
+            ddiContainer.style.display = 'none';
+            ddiContainer.innerHTML = '';
+            return;
+        }
+
+        ddiContainer.style.display = 'block';
+        ddiContainer.innerHTML = foundAlerts.map(a => `
+            <div class="alert alert-${a.severity} border-${a.severity} shadow-sm p-3 mb-2">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 text-${a.severity}"></i>
+                    <strong class="text-uppercase small">${a.title}</strong>
+                    <span class="badge bg-${a.severity} text-white ms-auto">${a.pair}</span>
+                </div>
+                <div class="small text-dark mb-1">${a.desc}</div>
+                <div class="small fw-bold text-${a.severity}">
+                    <i class="bi bi-lightbulb me-1"></i>Khuyến nghị xử trí: ${a.advice}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addQuickMedication(name, dosage, frequency, duration, instructions) {
+        addPrescriptionRow(name, dosage, frequency, duration, instructions);
+    }
+
+    function previewSelectedAttachments(input) {
+        const previewList = document.getElementById('attachmentsPreviewList');
+        previewList.innerHTML = '';
+        if (!input.files || input.files.length === 0) {
+            previewList.style.display = 'none';
+            return;
+        }
+
+        previewList.style.display = 'flex';
+        Array.from(input.files).forEach((file, index) => {
+            const isImage = file.type.startsWith('image/');
+            const sizeKb = (file.size / 1024).toFixed(0);
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4';
+
+            const card = document.createElement('div');
+            card.className = 'p-2 border rounded bg-white shadow-sm d-flex align-items-center gap-2';
+
+            if (isImage) {
+                const img = document.createElement('img');
+                img.className = 'rounded border object-fit-cover';
+                img.style.width = '48px';
+                img.style.height = '48px';
+                const reader = new FileReader();
+                reader.onload = e => { img.src = e.target.result; };
+                reader.readAsDataURL(file);
+                card.appendChild(img);
+            } else {
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'rounded bg-danger-subtle text-danger d-flex align-items-center justify-content-center';
+                iconDiv.style.width = '48px';
+                iconDiv.style.height = '48px';
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark-pdf fs-4"></i>';
+                card.appendChild(iconDiv);
+            }
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'flex-grow-1 text-truncate';
+            infoDiv.innerHTML = `
+                <div class="small fw-semibold text-truncate text-dark" title="${file.name}">${file.name}</div>
+                <div class="text-muted" style="font-size: 0.72rem;">${sizeKb} KB &bull; Sẵn sàng tải lên</div>
+            `;
+            card.appendChild(infoDiv);
+            col.appendChild(card);
+            previewList.appendChild(col);
         });
     }
-});
+
+    // Populate initial existing prescriptions or 1 empty default row
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(isset($appointment->medicalRecord) && $appointment->medicalRecord->prescriptions->count() > 0)
+            @foreach($appointment->medicalRecord->prescriptions as $p)
+                addPrescriptionRow(
+                    "{{ addslashes($p->medication_name) }}",
+                    "{{ addslashes($p->dosage) }}",
+                    "{{ addslashes($p->frequency) }}",
+                    {{ $p->duration_days }},
+                    "{{ addslashes($p->instructions) }}"
+                );
+            @endforeach
+        @else
+            // Default 1 blank row for convenience
+            addPrescriptionRow('Paracetamol 500mg', '1 viên/lần', 'Ngày 2 lần khi sốt > 38.5°C', 5, 'Uống sau ăn no');
+        @endif
+    });
 </script>
 @endpush
