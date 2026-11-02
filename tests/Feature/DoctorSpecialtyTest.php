@@ -181,6 +181,7 @@ class DoctorSpecialtyTest extends TestCase
                 'room_number' => $doctor->room_number,
                 'consultation_fee' => $doctor->consultation_fee,
                 'avatar' => $file,
+                'is_available' => '1',
             ]);
 
             $response->assertRedirect(route('admin.doctors.index'));
