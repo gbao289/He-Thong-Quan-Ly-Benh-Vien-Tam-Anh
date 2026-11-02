@@ -312,6 +312,21 @@ class ReceptionAppointmentController extends Controller
             'cancellation_reason' => 'Lễ tân hủy: ' . $request->input('cancellation_reason'),
         ]);
 
+        // Auto-promote next candidate from waitlist queue
+        try {
+            $dateStr = $appointment->appointment_date instanceof \Carbon\Carbon
+                ? $appointment->appointment_date->toDateString()
+                : (string) $appointment->appointment_date;
+
+            app(\App\Services\WaitlistEngineService::class)->promoteNextCandidate(
+                $appointment->doctor_id,
+                $dateStr,
+                $appointment->shift
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Waitlist auto-promotion failed on reception cancel: " . $e->getMessage());
+        }
+
         return back()->with('success', "Đã hủy lịch hẹn {$appointment->appointment_code}.");
     }
 

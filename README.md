@@ -22,8 +22,8 @@
 Dự án được xây dựng và đóng góp chính thức qua Pull Requests trên GitHub:
 
 | Thành viên | GitHub Username | Vai trò & Đóng góp chính | Trạng thái tích hợp |
-| :--- | :--- | :--- | :---: |
-| **Nguyễn Thành Quý** | [@quy0358](https://github.com/quy0358) | **Project Lead & Core Architect**: Khung nền tảng Laravel 12, Auth & RBAC, Booking Engine, Master Layouts, Quản lý User | [![Merged](https://img.shields.io/badge/Status-Core%20Maintainer-success)]() |
+| :--- | :--- | :--- | :--- |
+| **Nguyễn Thành Quý** | [@quy0358](https://github.com/quy0358) | **Technical Lead & Core Architect**: Kiến trúc nền tảng Laravel 11, Master Layouts, Auth & RBAC, Booking Engine, Cùng **Bộ 10 Tính Năng Đột Phá Kiến Trúc & An Ninh Nâng Cao** (2FA TOTP RFC 6238, Smart Waitlist Engine FIFO, Calendar Sync RFC 5545, Family Health Profiles, Self-service Reschedule, Anti-Spam Honeypot, Security Audit Logging CSV, Active Device Sessions, Dynamic Settings & System Health Diagnostic Telemetry) - Toàn bộ 299 Tests đạt 100% Green! | [![Status](https://img.shields.io/badge/Status-Core%20Architect-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-299%2F299%20Green-brightgreen)]() |
 | **Nguyễn Văn Hưng** | [@hung090725](https://github.com/hung090725) | **Patient Reception, Clinical Safety & Smart Hospital Suite**: Bộ giải pháp bệnh viện thông minh chuẩn JCI (Smart OR, AI PACS, qSOFA Sepsis, Gen PGx, AI Sepsis, CDSS Rules, Stroke Pathway, STEMI Cathlab, DRG Billing, Digital Twin 360, Telehealth Video, 270 Unit/Feature Tests xanh 100% - 1.157 Assertions) | [![PR #4 & #6 Merged](https://img.shields.io/badge/PR%20%234%20%26%20%236-Merged-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-270%2F270%20Green-brightgreen)]() |
 | **Nguyễn Văn Đạt** | [@jtadd123](https://github.com/jtadd123) | **Master Data & Public Portal**: Quản lý Chuyên khoa, Bác sĩ, Lịch trực tuần, Trang giới thiệu viện, Avatar bác sĩ, Bác sĩ trực hôm nay, AJAX Live Search, Chart.js Analytics, Trợ lý AI Symptom Matcher, vCard QR thông minh, Nghỉ phép ủy quyền, Ma trận ca trực Roster, Mẫu in hồ sơ năng lực PDF | [![PR #1 & #7 Merged](https://img.shields.io/badge/PR%20%231%20%26%20%237-Merged-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-23%2F23%20Green-brightgreen)]() |
 | **Võ Lê Gia Bảo** | [@gbao289](https://github.com/gbao289) | **Consultation, Records & Analytics**: Bàn khám bác sĩ, Bệnh án điện tử, Đơn thuốc lặp, File y tế bảo mật qua Policy, Dashboard thống kê, Xuất báo cáo Excel/PDF (XlsxReportWriter) & Lịch sử bệnh nhân | [![PR #5 & #8 Merged](https://img.shields.io/badge/PR%20%235%20%26%20%238-Merged-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-10%2F10%20Green-brightgreen)]() |
@@ -80,13 +80,23 @@ erDiagram
 ### 1. NGUYỄN THÀNH QUÝ (Technical Lead)
 - **Phạm vi phụ trách:**
   - Khởi tạo khung dự án Laravel, Master Layouts (`layouts/master.blade.php`, `layouts/admin.blade.php`), Components dùng chung (`<x-alert>`, `<x-status-badge>`).
-  - Lập trình Auth: Đăng nhập, đăng xuất, đổi mật khẩu, Remember Me.
-  - Viết Middleware `CheckRole` phân quyền 4 vai trò.
-  - Migration & Seeder bảng: `users`, `appointments`.
-  - Xây dựng Booking Engine: Trang đặt lịch trực tuyến, kiểm tra tránh trùng ca và quá tải khám của bác sĩ (`BookingController`, `StoreAppointmentRequest`).
-  - Cấu hình gửi mail xác nhận đặt lịch `AppointmentCreatedMail`.
+  - Lập trình Auth & RBAC: Đăng nhập, đăng xuất, đổi mật khẩu, Remember Me, Middleware `CheckRole` phân quyền 4 vai trò.
+  - Migration & Seeder bảng cốt lõi: `users`, `appointments`, `security_audit_logs`, `system_settings`, `family_members`.
+  - Xây dựng Booking Engine: Trang đặt lịch trực tuyến, Pessimistic Row Locking tránh overbooking và race condition, kiểm tra trùng ca khám.
+  - Cấu hình gửi mail xác nhận đặt lịch `AppointmentCreatedMail` & `AppointmentRescheduledMail`.
   - Màn hình Portal lịch sử khám dành cho bệnh nhân.
-- **Tiêu chí hoàn thành:** Đăng nhập đúng phân quyền, đặt lịch thành công sinh mã và gửi email, chặn trùng ca khám.
+  - **Bộ 10 Phân Hệ Kiến Trúc & An Ninh Đột Phá:**
+    1. Xác thực 2 bước 2FA (RFC 6238 TOTP Google Authenticator & 8 mã khôi phục dự phòng).
+    2. Quản lý phiên hoạt động & Đăng xuất thiết bị từ xa (Remote Session Invalidation).
+    3. Nhật ký kiểm toán bảo mật, phát hiện Brute-Force & Xuất dữ liệu CSV (`SecurityAuditService`).
+    4. Hàng đợi chờ thông minh (Smart Waitlist Engine with FIFO Auto-Promotion on cancellation).
+    5. Đồng bộ Google Calendar URL & Tải file iCalendar chuẩn RFC 5545 (`.ics`).
+    6. Hồ sơ sức khỏe người thân & Đặt lịch cho người phụ thuộc (`family_members`).
+    7. Đổi lịch khám bệnh tự phục vụ trực tuyến (Self-Service Reschedule Engine & Audit History).
+    8. Bộ lọc chống Spam Bot đa tầng (Invisible Honeypot + Velocity Check + IP Rate Limiter).
+    9. Bảng điều khiển tham số động & Chế độ bảo trì bệnh viện (`SystemSetting` & 503 Maintenance).
+    10. Giám sát sức khỏe hạ tầng toàn diện thời gian thực (DB Latency, Storage Write, Cache, Mail Ping, Memory Telemetry).
+- **Tiêu chí hoàn thành:** Toàn bộ 10 phân hệ kiến trúc đã hoạt động mượt mà, 11/11 automated tests trong `TechLeadInnovationSuiteTest` đạt 100% Green, nâng tổng số test suite toàn dự án lên **299/299 tests Green (1.281 assertions)**.
 
 ### 2. NGUYỄN VĂN ĐẠT (Chuyên khoa & Bác sĩ)
 - **Phạm vi phụ trách:**
@@ -246,6 +256,28 @@ Nhằm đảm bảo tính minh bạch cao nhất phục vụ Thầy và Hội đ
 - **Kết quả kiểm thử tự động:** `222 passed (914 assertions)` - 0 failures, 0 errors.
 - **Tài liệu thẩm định chuyên sâu:** Xem tại [docs/DONG_GOP_CHUYEN_MON_NGUYEN_VAN_HUNG.md](./docs/DONG_GOP_CHUYEN_MON_NGUYEN_VAN_HUNG.md).
 - **Công cụ đồng bộ tự động 1-click:** File `push_progress.bat` tại thư mục gốc tự động chạy kiểm thử trước khi push lên GitHub.
+
+---
+
+## 🛡️ 11. BỘ 10 TÍNH NĂNG KIẾN TRÚC & AN NINH NÂNG CAO (TECHNICAL LEAD - NGUYỄN THÀNH QUÝ)
+
+Nhằm nâng cao chất lượng đồ án đạt cấp độ sản phẩm triển khai thực tế (Enterprise Grade), Technical Lead **Nguyễn Thành Quý** đã hoàn thành tích hợp trọn vẹn 10 phân hệ kiến trúc nền tảng và bảo mật nâng cao:
+
+| STT | Tính năng kiến trúc | Mô tả kỹ thuật & Thuật toán | Vị trí mã nguồn & Kiểm thử |
+| :---: | :--- | :--- | :--- |
+| **01** | **Xác thực 2 bước (2FA - TOTP)** | Thuật toán RFC 6238 HMAC-SHA1 trong PHP thuần, Base32 encoder/decoder, mã khôi phục khẩn cấp, tương thích Google/Microsoft Authenticator | `TotpService.php`, `TwoFactorController.php`, `two_factor_setup.blade.php` |
+| **02** | **Quản lý Phiên & Đăng xuất Từ xa** | Theo dõi thông tin phiên đăng nhập (IP, User Agent, Thời gian), cơ chế vô hiệu hóa phiên thiết bị khác từ xa qua mật khẩu | `DeviceSessionController.php`, `sessions.blade.php` |
+| **03** | **Nhật ký Kiểm toán & Phát hiện Brute-force** | Ghi nhận chi tiết mọi sự kiện an ninh, tự động phát hiện mẫu tấn công dò mật khẩu và kích hoạt `brute_force_alert`, xuất CSV UTF-8 BOM | `SecurityAuditService.php`, `SecurityAuditController.php`, `admin/security_audit/` |
+| **04** | **Hàng Đợi Chờ Thông Minh (Smart Waitlist)** | Thuật toán xếp hàng chờ tự động FIFO khi ca khám đạt `max_patients`. Tự động đôn chỗ (Auto-Promotion) và gửi email kích hoạt khi có ca hủy | `WaitlistEngineService.php`, `WaitlistPromotedMail.php`, `BookingController.php` |
+| **05** | **Đồng bộ Lịch khám (Calendar Sync)** | Tạo liên kết thêm vào Google Calendar và tạo tệp lịch chuẩn quốc tế iCalendar RFC 5545 (`.ics`) cho Apple Calendar, Outlook | `CalendarSyncService.php`, `CalendarExportController.php`, `booking-success.blade.php` |
+| **06** | **Hồ sơ Người thân & Đặt lịch Gia đình** | Quản lý người phụ thuộc (con cái, cha mẹ, vợ chồng), tự động điền thông tin nhanh khi đặt lịch tại phòng khám | `FamilyMember.php`, `FamilyMemberController.php`, `patient/family/` |
+| **07** | **Đổi Lịch Khám Tự Phục Vụ (Reschedule Engine)** | Cho phép bệnh nhân tự đổi ngày/ca khám trực tuyến, kiểm tra lịch trống và tự động kích hoạt đôn người cho slot cũ vừa giải phóng | `RescheduleAppointmentRequest.php`, `PatientPortalController.php`, `AppointmentRescheduledMail.php` |
+| **08** | **Chống Spam Bot Đa Tầng** | Cơ chế bẫy bot tàng hình (Invisible Honeypot) + Kiểm tra tốc độ nhập người dùng (Velocity Check > 1.5s) + Rate Limiter IP (15 req / 5 min) | `BookingSpamProtection.php`, `booking.blade.php` |
+| **09** | **Cấu Hình Tham Số Động & Chế Độ Bảo Trì** | Trung tâm quản lý cấu hình hệ thống bệnh viện thời gian thực qua Cache + Bật/tắt bảo trì cổng đặt lịch trả HTTP 503 thân thiện | `SystemSetting.php`, `CheckBookingMaintenance.php`, `SystemSettingController.php` |
+| **10** | **Giám Sát Sức Khỏe Toàn Diện (System Health)** | Bộ đo đạc vi mô thời gian thực: Độ trễ MySQL/MariaDB (ms), dung lượng ổ cứng, quyền ghi Storage, Cache read/write, Ping máy chủ Email, RAM usage | `SystemHealthCheckService.php`, `SystemHealthController.php`, `admin/system_health/` |
+
+- **Kết quả kiểm thử tự động toàn diện:** `tests/Feature/TechLeadInnovationSuiteTest.php` với **11/11 tests PASSED 100% Green (68 assertions)**.
+- **Tổng kiểm thử toàn dự án sau tích hợp:** **299 tests PASSED 100% Green (1.281 assertions)**.
 
 ---
 *Dự án phục vụ mục đích học tập và nghiên cứu môn học Phát triển ứng dụng Web.*

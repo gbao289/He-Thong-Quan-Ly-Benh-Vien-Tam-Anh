@@ -6,8 +6,15 @@ use App\Http\Controllers\Admin\DoctorRosterController;
 use App\Http\Controllers\Admin\ReportExportController;
 use App\Http\Controllers\Admin\SpecialtyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SecurityAuditController;
+use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\SystemHealthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\Auth\DeviceSessionController;
+use App\Http\Controllers\Patient\FamilyMemberController;
+use App\Http\Controllers\Public\CalendarExportController;
 use App\Http\Controllers\Doctor\ClinicalConsultationController;
 use App\Http\Controllers\Doctor\DoctorConsultationController;
 use App\Http\Controllers\Doctor\DoctorQueueController;
@@ -97,20 +104,32 @@ Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('throttle:10,1');
+    Route::get('/two-factor/challenge', [TwoFactorController::class, 'showChallenge'])->name('two-factor.challenge');
+    Route::post('/two-factor/challenge', [TwoFactorController::class, 'verifyChallenge'])->name('two-factor.verify');
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+    // 2FA Management
+    Route::get('/two-factor/setup', [TwoFactorController::class, 'showSetup'])->name('two-factor.setup');
+    Route::post('/two-factor/confirm', [TwoFactorController::class, 'confirm'])->name('two-factor.confirm');
+    Route::delete('/two-factor/disable', [TwoFactorController::class, 'disable'])->name('two-factor.disable');
+
+    // Active Sessions & Remote Device Logout
+    Route::get('/account/sessions', [DeviceSessionController::class, 'index'])->name('sessions.index');
+    Route::post('/account/sessions/logout-others', [DeviceSessionController::class, 'logoutOtherDevices'])->name('sessions.logout-others');
 });
 
 // 1.2. Booking Engine (Đặt lịch khám bệnh trực tuyến)
 Route::prefix('booking')->group(function () {
-    Route::get('/', [BookingController::class, 'create'])->name('booking.create');
-    Route::post('/', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/', [BookingController::class, 'create'])->name('booking.create')->middleware('booking.maintenance');
+    Route::post('/', [BookingController::class, 'store'])->name('booking.store')->middleware(['booking.maintenance', 'booking.spam']);
     Route::get('/success/{code}', [BookingController::class, 'success'])->name('booking.success');
     Route::get('/lookup', [BookingController::class, 'lookup'])->name('booking.lookup')->middleware('throttle:30,1');
+    Route::get('/calendar/{code}.ics', [CalendarExportController::class, 'downloadIcs'])->name('calendar.ics');
 
     // AJAX API routes for dynamic dropdown and overbooking slot checking
     Route::get('/doctors-by-specialty/{specialtyId}', [BookingController::class, 'getDoctorsBySpecialty'])->name('booking.doctors_by_specialty');
@@ -152,6 +171,15 @@ Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')
     Route::get('/appointments/{appointment}/prescription/print', [PatientPortalController::class, 'printPrescription'])->name('appointments.prescription.print');
     Route::get('/certificates/{certificate}/print', [SickLeaveCertificateController::class, 'print'])->name('certificates.print');
     Route::put('/appointments/{appointment}/cancel', [PatientPortalController::class, 'cancelAppointment'])->name('appointments.cancel');
+
+    // Self-service appointment reschedule
+    Route::get('/appointments/{appointment}/reschedule', [PatientPortalController::class, 'showReschedule'])->name('appointments.reschedule');
+    Route::post('/appointments/{appointment}/reschedule', [PatientPortalController::class, 'processReschedule'])->name('appointments.reschedule.process');
+
+    // Family Member Management
+    Route::get('/family-members', [FamilyMemberController::class, 'index'])->name('family.index');
+    Route::post('/family-members', [FamilyMemberController::class, 'store'])->name('family.store');
+    Route::delete('/family-members/{familyMember}', [FamilyMemberController::class, 'destroy'])->name('family.destroy');
 });
 
 Route::get('/patient/appointments/{appointment}', [PatientPortalController::class, 'showAppointment'])
@@ -179,6 +207,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/doctors/leaves/{leave}', [DoctorManagementController::class, 'destroyLeave'])->name('doctors.leaves.destroy');
     Route::patch('/doctors/{doctor}/toggle-availability', [DoctorManagementController::class, 'toggleAvailability'])->name('doctors.toggle-availability');
     Route::resource('doctors', DoctorManagementController::class);
+
+    // Technical Lead Innovation: Security Audit Trail, System Settings & Infrastructure Health
+    Route::get('/security-audit', [SecurityAuditController::class, 'index'])->name('security-audit.index');
+    Route::get('/security-audit/export', [SecurityAuditController::class, 'export'])->name('security-audit.export');
+    Route::get('/settings', [SystemSettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SystemSettingController::class, 'update'])->name('settings.update');
+    Route::get('/system-health', [SystemHealthController::class, 'index'])->name('system-health.index');
+    Route::post('/system-health/ping-mail', [SystemHealthController::class, 'pingMail'])->name('system-health.ping-mail');
 });
 
 // Cổng thông tin công chúng: Danh bạ Bác sĩ & Trợ lý Triệu chứng

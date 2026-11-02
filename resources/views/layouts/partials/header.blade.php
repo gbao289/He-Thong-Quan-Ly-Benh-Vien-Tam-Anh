@@ -92,7 +92,22 @@
                                         <i class="bi bi-journal-medical text-success me-2"></i> Lịch sử khám của tôi
                                     </a>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ route('patient.family.index') }}">
+                                        <i class="bi bi-people text-info me-2"></i> Hồ sơ người thân & gia đình
+                                    </a>
+                                </li>
                             @endif
+                            <li>
+                                <a class="dropdown-item py-2" href="{{ route('two-factor.setup') }}">
+                                    <i class="bi bi-shield-check text-primary me-2"></i> Bảo mật 2 lớp (2FA)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" href="{{ route('sessions.index') }}">
+                                    <i class="bi bi-display text-secondary me-2"></i> Phiên đăng nhập & Thiết bị
+                                </a>
+                            </li>
                             <li>
                                 <a class="dropdown-item py-2" href="{{ route('profile.password') }}">
                                     <i class="bi bi-shield-lock text-warning me-2"></i> Đổi mật khẩu

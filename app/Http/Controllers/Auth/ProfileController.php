@@ -42,6 +42,13 @@ class ProfileController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->save();
 
+        \App\Services\SecurityAuditService::log(
+            'password_changed',
+            "Người dùng {$user->email} đã thay đổi mật khẩu thành công",
+            $user->id,
+            'info'
+        );
+
         return back()->with('success', 'Đổi mật khẩu thành công! Mật khẩu mới của bạn đã được cập nhật an toàn.');
     }
 }
