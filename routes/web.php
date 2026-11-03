@@ -733,7 +733,7 @@ Route::middleware(['auth', 'role:doctor,admin'])->prefix('doctor')->name('doctor
 // =========================================================================
 // ====== MODULE 5: IN-HOSPITAL CLINICAL CONSULTATION =======================
 // =========================================================================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:doctor,admin'])->group(function () {
     Route::post('/consultations/{consultation}/respond', [ClinicalConsultationController::class, 'respond'])->name('consultations.respond');
     Route::get('/consultations/{consultation}/print', [ClinicalConsultationController::class, 'print'])->name('consultations.print');
     Route::resource('consultations', ClinicalConsultationController::class);
