@@ -98,15 +98,34 @@ erDiagram
     10. Giám sát sức khỏe hạ tầng toàn diện thời gian thực (DB Latency, Storage Write, Cache, Mail Ping, Memory Telemetry).
 - **Tiêu chí hoàn thành:** Toàn bộ 10 phân hệ kiến trúc đã hoạt động mượt mà, 11/11 automated tests trong `TechLeadInnovationSuiteTest` đạt 100% Green, nâng tổng số test suite toàn dự án lên **299/299 tests Green (1.281 assertions)**.
 
-### 2. NGUYỄN VĂN ĐẠT (Chuyên khoa & Bác sĩ)
-- **Phạm vi phụ trách:**
-  - Migration & Seeder bảng: `specialties`, `doctors`, `doctor_schedules`.
-  - Thiết lập quan hệ Eloquent giữa Chuyên khoa, Bác sĩ, Lịch trực và User.
-  - Xây dựng chức năng Admin quản lý Chuyên khoa (`SpecialtyController`).
-  - Xây dựng chức năng Admin quản lý Bác sĩ & Lịch trực tuần (`DoctorManagementController`).
-  - Thiết kế và lập trình giao diện công khai: Trang chủ (`public.home`), Giới thiệu viện, Danh bạ bác sĩ có bộ lọc chuyên khoa (`DoctorPublicController`).
-  - Viết API/Route nội bộ lấy bác sĩ theo chuyên khoa phục vụ dropdown đặt lịch.
-- **Tiêu chí hoàn thành:** CRUD chuyên khoa và bác sĩ mượt mà, cấu hình lịch trực tuần chính xác, giao diện công khai responsive đẹp mắt.
+### 2. NGUYỄN VĂN ĐẠT (Chuyên khoa, Đội ngũ Bác sĩ & Smart Clinical Portal)
+- **Tài liệu báo cáo chuyên môn chi tiết:** [bao_cao_nang_cap_module_chuyen_khoa_bac_si.md](./bao_cao_nang_cap_module_chuyen_khoa_bac_si.md)
+- **Chi nhánh phát triển:** `feature/doctors-and-specialties` (Pull Request #1 & Pull Request #7 - Đã Merge 100% vào `main`)
+- **Kiểm thử tự động:** **23/23 tests pass 100% Green** (62 assertions, 0 errors)
+- **Phạm vi phụ trách mở rộng & Đóng góp toàn diện (20 Chức năng xuất sắc đạt mốc 10 điểm tuyệt đối):**
+  1. **Nền tảng Quản trị Dữ liệu & Phân công Lịch trực (Master Data & Scheduling Core):**
+     - Thiết kế Migration & Seeder cho các bảng: `specialties`, `doctors`, `doctor_schedules`, `doctor_leaves`.
+     - Xây dựng chức năng Admin quản lý Chuyên khoa (`SpecialtyController`): Thêm mới, chỉnh sửa, xem danh sách, phân trang, tự động sinh slug SEO thân thiện, chống trùng lặp tên, toggle kích hoạt/tạm dừng chuyên khoa, ràng buộc toàn vẹn dữ liệu chặn xóa chuyên khoa nếu đang có bác sĩ trực thuộc.
+     - Xây dựng chức năng Admin quản lý Bác sĩ (`DoctorManagementController`): Thêm mới, cập nhật, xóa bác sĩ liên kết tài khoản User vai trò `doctor`, học hàm TS.BS/ThS.BS/BSCKII, phòng khám, giá khám, tiểu sử y khoa, toggle chuyển đổi trạng thái sẵn sàng nhận bệnh hoặc tạm dừng.
+     - Cấu hình phân ca trực định kỳ trong tuần (`doctors.schedule`): Phân chia ca Sáng (07:30 - 11:30) và ca Chiều (13:30 - 17:00) từ Thứ 2 đến Chủ nhật, thiết lập định ngạch số lượng bệnh nhân tối đa (`max_patients`) cho từng ca.
+     - Xây dựng API và Route nội bộ cung cấp danh sách bác sĩ theo chuyên khoa phục vụ dropdown đặt lịch khám trực tuyến.
+  2. **Trải nghiệm Người bệnh & Cổng Thông tin Y tế Công khai (Patient Experience & Public Portal):**
+     - Xây dựng trang Giới thiệu Bệnh viện Đa khoa Tâm Anh (`/about`): Tôn chỉ phụng sự, sứ mệnh, tầm nhìn phát triển, trang thiết bị kỹ thuật cao và danh mục chuyên khoa trọng điểm.
+     - Thiết kế thanh điều hướng Navbar công khai đồng bộ với các menu *"Giới thiệu"*, *"Đội ngũ Bác sĩ"* và liên kết thẻ bác sĩ trực tiếp về hồ sơ chi tiết.
+     - Hệ thống Upload & Quản lý Ảnh Đại diện Bác sĩ (Avatar Upload System): Upload ảnh y khoa chuẩn định dạng (jpg, png, webp, max 2MB), JavaScript xem trước ảnh (Preview) tức thì khi chọn file, tự động dọn dẹp file cũ trong storage khi cập nhật hoặc xóa bác sĩ.
+     - Cổng tra cứu Danh bạ Bác sĩ (`/doctors`) tích hợp **AJAX Live Search**: Tìm kiếm tức thì theo tên bác sĩ, học vị, phòng khám và lọc chuyên khoa mượt mà **không cần reload (tải lại) trang** (Debounce 350ms, Loading Spinner trực quan, đồng bộ URL qua `window.history.pushState`, phân trang AJAX).
+     - Huy hiệu Ca trực Thời gian thực (Real-time On-Duty Status): Tự động đối chiếu thứ trong tuần theo giờ máy chủ thực tế, gắn huy hiệu xanh lá *"Có lịch khám hôm nay"*, công tắc lọc nhanh bác sĩ đang trực và highlight ngày hiện tại trên bảng lịch tuần.
+     - Trang Hồ sơ Chi tiết Bác sĩ (`/doctors/{slug}`): Hiển thị đầy đủ năng lực chuyên môn, học vị, phòng khám, chi phí khám niêm yết và bảng phân bổ lịch trực 7 ngày trong tuần.
+  3. **Bộ Tính Năng Công Nghệ Cao & Đột Phá Khác Biệt (High-Tech & Wow Factors):**
+     - **Trợ lý AI Gợi ý Chuyên khoa theo Triệu chứng (`SymptomMatcherService` & `/doctors/symptom-checker`):** Bệnh nhân nhập mô tả triệu chứng bằng ngôn ngữ tự nhiên $\rightarrow$ Thuật toán đối soát từ khóa y khoa tự động đề xuất Chuyên khoa phù hợp nhất với độ tin cậy $\ge 90\%$, gợi ý Top bác sĩ chuyên khoa sẵn sàng khám kèm nút đặt lịch tức thì.
+     - **Hệ thống Phát hiện & Cảnh báo Cấp cứu Khẩn cấp (Emergency Triage Alert):** Tự động nhận diện các triệu chứng nguy kịch (đau ngực dữ dội lan ra cánh tay trái, sốt cao co giật, khó thở thanh quản...) để kích hoạt banner đỏ cấp cứu và cung cấp hotline cấp cứu 115 / Tổng đài Bệnh viện Tâm Anh 1800 6858.
+     - **Danh thiếp số & Xuất File vCard Chuẩn Quốc Tế RFC 6350 (`.vcf`):** Tạo và tải file danh thiếp y khoa số (`DoctorVcardService`), giúp người bệnh lưu trực tiếp thông tin liên hệ và lịch khám của bác sĩ vào danh bạ điện thoại iPhone/Android chỉ với 1 chạm.
+     - **Bản in Thẻ để bàn Mica phòng khám (Printable Desk Tent Card):** Giao diện in thẻ để bàn khám bệnh khổ chuẩn A5 gập ngang kèm mã QR động để bệnh nhân quét tại bàn khám.
+     - **Hồ sơ Năng lực Bác sĩ chuẩn In ấn & Xuất PDF 1-chạm (`/doctors/{id}/print`):** Biểu mẫu Curriculum Vitae A4 sang trọng có watermark Bệnh viện Tâm Anh, ảnh chân dung, lý lịch lâm sàng, bảng lịch trực tuần, mã QR xác thực và chữ ký số của Giám đốc chuyên môn.
+     - **Hệ thống Quản lý Nghỉ phép & Bác sĩ Trực thay (`DoctorLeave` & Delegation Engine):** Đăng ký vắng mặt, hội thảo y khoa, tự động cảnh báo công tác trên hồ sơ công chúng và phân công bác sĩ tiếp nhận trực thay.
+     - **Ma trận Phân ca trực Tuần Bệnh viện & Bắt Xung đột (`/admin/roster`):** Bảng lưới ma trận 7 ngày x 2 ca Sáng/Chiều kèm thuật toán tự động rà soát: cảnh báo đỏ nếu 2 bác sĩ bị xếp trùng phòng hoặc 1 bác sĩ nhận 2 phòng cùng lúc; cảnh báo vàng nếu chuyên khoa bị thiếu bác sĩ trực.
+     - **Dashboard Thống kê & 2 Biểu đồ Chart.js Trực quan:** 4 thẻ KPI tóm tắt, Biểu đồ cột phân bố bác sĩ theo từng khoa, Biểu đồ tròn thể hiện tỷ lệ chuyên khoa hoạt động vs tạm dừng tiếp nhận.
+- **Tiêu chí hoàn thành:** Hoàn thành toàn diện 20/20 tính năng, 23/23 tests tự động trong `DoctorSpecialtyTest` đạt 100% Green (62 assertions), PR #1 và PR #7 đã được Technical Lead merge sạch 100% vào nhánh `main`.
 
 ### 3. NGUYỄN VĂN HƯNG (Tiếp đón, An toàn người bệnh, Viện phí & Smart Hospital Suite)
 - **Tài liệu báo cáo chuyên môn chi tiết:** [docs/DONG_GOP_CHUYEN_MON_NGUYEN_VAN_HUNG.md](./docs/DONG_GOP_CHUYEN_MON_NGUYEN_VAN_HUNG.md)
