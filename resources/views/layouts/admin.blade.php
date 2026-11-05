@@ -211,9 +211,10 @@
         </a>
 
         <!-- Thanh Tìm Kiếm Nhanh Chức Năng -->
-        <div class="sidebar-search-box px-1 mb-3">
+        <div class="sidebar-search-box px-1 mb-3 position-relative">
             <i class="bi bi-search sidebar-search-icon"></i>
-            <input type="text" id="sidebarSearchInput" class="form-control form-control-sm" placeholder="Tìm nhanh chức năng...">
+            <input type="text" id="sidebarSearchInput" class="form-control form-control-sm" placeholder="Tìm nhanh... (Ctrl+K)" autocomplete="off">
+            <span class="badge bg-primary bg-opacity-75 rounded-pill position-absolute d-none" id="sidebarSearchBadge" style="right: 2rem; top: 50%; transform: translateY(-50%); font-size: 0.65rem;"></span>
             <i class="bi bi-x-circle-fill sidebar-clear-icon" id="sidebarSearchClear" title="Xóa tìm kiếm"></i>
         </div>
 
@@ -975,17 +976,41 @@
                 });
             }
 
+            // Hàm chuẩn hóa tiếng Việt không dấu
+            function removeVietnameseTones(str) {
+                if (!str) return '';
+                str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+                str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+                str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+                str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+                str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+                str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+                str = str.replace(/đ/g, "d");
+                str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "a");
+                str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "e");
+                str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "i");
+                str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "o");
+                str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "u");
+                str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "y");
+                str = str.replace(/Đ/g, "d");
+                str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+                str = str.replace(/\u02C6|\u0306|\u031B/g, "");
+                return str.toLowerCase().trim();
+            }
+
             // Thanh Tìm Kiếm Nhanh Chức Năng Sidebar
             const searchInput = document.getElementById('sidebarSearchInput');
             const clearBtn = document.getElementById('sidebarSearchClear');
+            const searchBadge = document.getElementById('sidebarSearchBadge');
             const groupItems = document.querySelectorAll('.sidebar-group-item');
             const noResults = document.getElementById('sidebarNoResults');
 
             if (searchInput) {
                 searchInput.addEventListener('input', function () {
-                    const query = this.value.trim().toLowerCase();
+                    const rawQuery = this.value.trim().toLowerCase();
+                    const normQuery = removeVietnameseTones(rawQuery);
 
-                    if (query.length > 0) {
+                    if (rawQuery.length > 0) {
                         if (clearBtn) clearBtn.style.display = 'block';
                     } else {
                         if (clearBtn) clearBtn.style.display = 'none';
@@ -999,8 +1024,12 @@
                         let groupHasMatch = false;
 
                         navLinks.forEach(function (link) {
-                            const text = link.textContent.toLowerCase();
-                            if (query === '' || text.includes(query)) {
+                            const rawText = link.textContent.toLowerCase();
+                            const normText = removeVietnameseTones(link.textContent);
+
+                            const isMatch = (rawQuery === '' || rawText.includes(rawQuery) || normText.includes(normQuery));
+
+                            if (isMatch) {
                                 link.parentElement.style.display = '';
                                 groupHasMatch = true;
                                 totalVisible++;
@@ -1011,7 +1040,7 @@
 
                         if (groupHasMatch) {
                             group.style.display = '';
-                            if (collapseEl && query !== '') {
+                            if (collapseEl && rawQuery !== '') {
                                 collapseEl.classList.add('show');
                             }
                         } else {
@@ -1019,8 +1048,18 @@
                         }
                     });
 
+                    // Cập nhật số lượng kết quả
+                    if (searchBadge) {
+                        if (rawQuery.length > 0) {
+                            searchBadge.textContent = totalVisible;
+                            searchBadge.classList.remove('d-none');
+                        } else {
+                            searchBadge.classList.add('d-none');
+                        }
+                    }
+
                     // Nếu query trống thì khôi phục trạng thái ban đầu của collapse
-                    if (query === '') {
+                    if (rawQuery === '') {
                         groupItems.forEach(function (group) {
                             group.style.display = '';
                             const header = group.querySelector('.sidebar-category-header');
@@ -1049,6 +1088,17 @@
                     }
                 });
 
+                // Nhấn Enter để nhảy ngay đến mục đầu tiên tìm thấy
+                searchInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const firstLink = document.querySelector('.sidebar-group-item:not([style*="display: none"]) .nav-item:not([style*="display: none"]) .nav-link');
+                        if (firstLink) {
+                            firstLink.click();
+                        }
+                    }
+                });
+
                 if (clearBtn) {
                     clearBtn.addEventListener('click', function () {
                         searchInput.value = '';
@@ -1056,6 +1106,20 @@
                         searchInput.focus();
                     });
                 }
+
+                // Phím tắt Ctrl+K hoặc / để focus tìm kiếm
+                document.addEventListener('keydown', function (e) {
+                    if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName))) {
+                        e.preventDefault();
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                    if (e.key === 'Escape' && document.activeElement === searchInput) {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                        searchInput.blur();
+                    }
+                });
             }
         });
     </script>
