@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Quản trị Hệ thống') - Bệnh Viện Tâm Anh</title>
+    <title>@yield('title', 'Quản Trị Bệnh Viện') - Bệnh Viện Đa Khoa Tâm Anh</title>
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,8 +21,9 @@
     <style>
         :root {
             --tam-primary: #0284c7;
-            --tam-primary-dark: #0369a1;
+            --tam-primary-hover: #0369a1;
             --tam-accent: #0d9488;
+            --tam-dark: #0f172a;
             --tam-sidebar-bg: #0f172a;
             --tam-sidebar-hover: #1e293b;
         }
@@ -42,23 +43,102 @@
         }
 
         .sidebar {
-            width: 260px;
+            width: 270px;
             background-color: var(--tam-sidebar-bg);
             min-height: 100vh;
             transition: all 0.3s ease;
             z-index: 1000;
         }
 
-        .sidebar .nav-link {
-            color: #94a3b8;
-            padding: 0.75rem 1rem;
+        .sidebar-search-box {
+            position: relative;
+        }
+
+        .sidebar-search-box input {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+            font-size: 0.8rem;
+            padding-left: 2rem;
             border-radius: 0.5rem;
-            font-weight: 500;
+        }
+
+        .sidebar-search-box input:focus {
+            border-color: var(--tam-primary) !important;
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25) !important;
+        }
+
+        .sidebar-search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        .sidebar-clear-icon {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .sidebar-category-header {
+            color: #94a3b8;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 0.6rem 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.25rem;
+            justify-content: space-between;
             transition: all 0.2s ease;
+            user-select: none;
+            margin-top: 0.35rem;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-category-header:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-category-header.active-category {
+            color: #38bdf8;
+        }
+
+        .sidebar-category-header .chevron-icon {
+            font-size: 0.65rem;
+            transition: transform 0.25s ease;
+        }
+
+        .sidebar-category-header[aria-expanded="true"] .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .sidebar .nav-link {
+            color: #94a3b8;
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.4rem;
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 0.15rem;
+            transition: all 0.15s ease;
         }
 
         .sidebar .nav-link:hover {
@@ -69,15 +149,15 @@
         .sidebar .nav-link.active {
             color: #ffffff;
             background-color: var(--tam-primary);
+            font-weight: 600;
         }
 
-        .sidebar-heading {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #64748b;
-            padding: 0.75rem 1rem 0.25rem 1rem;
-            font-weight: 700;
+        .sidebar-subnav {
+            padding-left: 0.5rem;
+            margin-left: 0.25rem;
+            border-left: 2px solid rgba(148, 163, 184, 0.15);
+            margin-top: 0.2rem;
+            margin-bottom: 0.4rem;
         }
 
         .main-content {
@@ -103,7 +183,7 @@
         @media (max-width: 991.98px) {
             .sidebar {
                 position: fixed;
-                left: -260px;
+                left: -270px;
                 top: 0;
                 bottom: 0;
             }
@@ -119,7 +199,8 @@
 
     <!-- Sidebar -->
     <aside class="sidebar p-3 d-flex flex-column" id="adminSidebar">
-        <a href="{{ url('/') }}" class="d-flex align-items-center gap-2 mb-4 text-decoration-none px-2 text-white">
+        <!-- Logo -->
+        <a href="{{ url('/') }}" class="d-flex align-items-center gap-2 mb-3 text-decoration-none px-2 text-white">
             <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);">
                 <i class="bi bi-hospital fs-5"></i>
             </div>
@@ -129,463 +210,648 @@
             </div>
         </a>
 
-        <!-- Huy Hiệu Đồ Án Xuất Sắc - Nguyễn Văn Hưng -->
-        <div class="px-1 mb-3">
-            <button type="button" class="btn w-100 p-2 text-start rounded-3 border border-warning border-opacity-50 text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#projectContributionModal" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);">
-                <div class="d-flex align-items-center justify-content-between text-warning fw-bold mb-1">
-                    <span style="font-size: 0.72rem;"><i class="bi bi-award-fill"></i> ĐỒ ÁN XUẤT SẮC</span>
-                    <span class="badge bg-success" style="font-size: 0.6rem;">100% Passed</span>
-                </div>
-                <div class="fw-bold text-light" style="font-size: 0.82rem;">Nguyễn Văn Hưng</div>
-                <div class="text-white-50" style="font-size: 0.68rem;"><i class="bi bi-patch-check-fill text-info"></i> 120+ Phân Hệ Chuẩn JCI & BYT (Wave 1-8)</div>
-            </button>
+        <!-- Thanh Tìm Kiếm Nhanh Chức Năng -->
+        <div class="sidebar-search-box px-1 mb-3">
+            <i class="bi bi-search sidebar-search-icon"></i>
+            <input type="text" id="sidebarSearchInput" class="form-control form-control-sm" placeholder="Tìm nhanh chức năng...">
+            <i class="bi bi-x-circle-fill sidebar-clear-icon" id="sidebarSearchClear" title="Xóa tìm kiếm"></i>
         </div>
 
-        <div class="flex-grow-1 overflow-y-auto">
-            <ul class="nav flex-column">
+        <div class="flex-grow-1 overflow-y-auto pe-1" id="sidebarMenuContainer">
+            <ul class="nav flex-column" id="sidebarNavList">
 
+                {{-- 1. QUẢN TRỊ HỆ THỐNG (ADMIN) --}}
                 @if(Auth::check() && Auth::user()->isAdmin())
-                    <li class="sidebar-heading">Bảng Quản trị (Admin)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('admin/dashboard*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Dashboard Tổng quan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('admin/users*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                            <i class="bi bi-people"></i> Quản lý Người dùng
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('admin/specialties*') ? 'active' : '' }}" href="{{ route('admin.specialties.index') }}">
-                            <i class="bi bi-diagram-3"></i> Quản lý Chuyên khoa
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('admin/doctors*') ? 'active' : '' }}" href="{{ route('admin.doctors.index') }}">
-                            <i class="bi bi-person-badge"></i> Bác sĩ & Lịch trực
-                        </a>
+                    @php $isCatAdminActive = request()->is('admin/*'); @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatAdminActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupAdmin" 
+                                aria-expanded="{{ $isCatAdminActive ? 'true' : 'false' }}" aria-controls="groupAdmin">
+                            <span><i class="bi bi-shield-lock-fill text-primary me-2"></i>Quản Trị Hệ Thống</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatAdminActive ? 'show' : '' }}" id="groupAdmin">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('admin/dashboard*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                                        <i class="bi bi-speedometer2"></i> Dashboard Tổng quan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('admin/users*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                        <i class="bi bi-people"></i> Quản lý Người dùng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('admin/specialties*') ? 'active' : '' }}" href="{{ route('admin.specialties.index') }}">
+                                        <i class="bi bi-diagram-3"></i> Quản lý Chuyên khoa
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('admin/doctors*') ? 'active' : '' }}" href="{{ route('admin.doctors.index') }}">
+                                        <i class="bi bi-person-badge"></i> Bác sĩ & Lịch trực
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 @endif
 
+                {{-- 2. TIẾP ĐÓN & SẢNH CHỜ --}}
                 @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
-                    <li class="sidebar-heading">Nghiệp vụ Tiếp nhận (Lễ tân)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/appointments*') ? 'active' : '' }}" href="{{ route('reception.appointments.index') }}">
-                            <i class="bi bi-calendar-check"></i> Tiếp nhận & Check-in
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/patients*') ? 'active' : '' }}" href="{{ route('reception.patients.index') }}">
-                            <i class="bi bi-person-vcard"></i> Quản lý Bệnh nhân
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/pharmacy') || (request()->is('reception/pharmacy*') && !request()->is('reception/pharmacy/inventory*')) ? 'active' : '' }}" href="{{ route('reception.pharmacy.index') }}">
-                            <i class="bi bi-capsule-pill"></i> Quầy Dược Phát Thuốc
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/pharmacy/inventory*') ? 'active' : '' }}" href="{{ route('reception.pharmacy.inventory.index') }}">
-                            <i class="bi bi-box-seam"></i> Kho Dược & Tồn Kho
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/certificates*') ? 'active' : '' }}" href="{{ route('reception.certificates.index') }}">
-                            <i class="bi bi-journal-medical"></i> Sổ Giấy Nghỉ BHXH
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/consents*') ? 'active' : '' }}" href="{{ route('reception.consents.index') }}">
-                            <i class="bi bi-file-earmark-check"></i> Bản Cam Đoan Ký Số
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/invoices*') ? 'active' : '' }}" href="{{ route('reception.invoices.index') }}">
-                            <i class="bi bi-wallet2"></i> Hóa Đơn & Thu Phí VietQR
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/day-beds*') ? 'active' : '' }}" href="{{ route('reception.day-beds.index') }}">
-                            <i class="bi bi-hospital"></i> Giường Ngoại Trú & Lưu Ngày
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/vaccinations*') ? 'active' : '' }}" href="{{ route('reception.vaccinations.index') }}">
-                            <i class="bi bi-shield-check"></i> Tiêm Chủng & Sổ Vắc-Xin
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/code-red*') ? 'active' : '' }}" href="{{ route('reception.code-red.index') }}">
-                            <i class="bi bi-bell-fill text-danger"></i> Báo Động Đỏ Cấp Cứu
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/deliveries*') ? 'active' : '' }}" href="{{ route('reception.deliveries.index') }}">
-                            <i class="bi bi-box2-heart"></i> Giao Thuốc Tận Nhà
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/surveys*') ? 'active' : '' }}" href="{{ route('reception.surveys.index') }}">
-                            <i class="bi bi-star-half"></i> Khảo Sát Hài Lòng BYT
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/lab-orders*') ? 'active' : '' }}" href="{{ route('reception.lab-orders.index') }}">
-                            <i class="bi bi-moisture text-info"></i> Cận Lâm Sàng & Xét Nghiệm
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/blood-transfusions*') ? 'active' : '' }}" href="{{ route('reception.blood-transfusions.index') }}">
-                            <i class="bi bi-droplet-half text-danger"></i> An Toàn Truyền Máu
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/mobility*') ? 'active' : '' }}" href="{{ route('reception.mobility.index') }}">
-                            <i class="bi bi-person-wheelchair text-primary"></i> Mượn Trả Xe Lăn Tại Sảnh
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/nutrition*') ? 'active' : '' }}" href="{{ route('reception.nutrition.index') }}">
-                            <i class="bi bi-heart-pulse text-success"></i> Dinh Dưỡng & Thực Đơn
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">Hành Chính & Viện Phí Thông Minh</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/insurance-transfers*') ? 'active' : '' }}" href="{{ route('reception.insurance-transfers.index') }}">
-                            <i class="bi bi-file-earmark-medical text-primary"></i> Chuyển Tuyến BHYT (M40)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/wallets*') ? 'active' : '' }}" href="{{ route('reception.wallets.index') }}">
-                            <i class="bi bi-wallet2 text-success"></i> Ví Ký Quỹ & Tạm Ứng
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/private-insurance*') ? 'active' : '' }}" href="{{ route('reception.private-insurance.index') }}">
-                            <i class="bi bi-shield-lock-fill text-info"></i> Bảo Lãnh Tư Nhân (GOP)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/record-requests*') ? 'active' : '' }}" href="{{ route('reception.record-requests.index') }}">
-                            <i class="bi bi-file-earmark-lock2-fill text-warning"></i> Cổng Sao Lục Bệnh Án
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">An Toàn Người Bệnh & An Ninh</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/emergency-custody*') ? 'active' : '' }}" href="{{ route('reception.emergency-custody.index') }}">
-                            <i class="bi bi-safe2-fill text-danger"></i> Tài Sản Cấp Cứu & Đồ Rơi
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/visitor-passes*') ? 'active' : '' }}" href="{{ route('reception.visitor-passes.index') }}">
-                            <i class="bi bi-person-badge-fill text-info"></i> Thẻ Thăm Bệnh Điện Tử
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/medical-incidents*') ? 'active' : '' }}" href="{{ route('reception.medical-incidents.index') }}">
-                            <i class="bi bi-shield-exclamation text-danger"></i> Báo Cáo Sự Cố (Near-Miss)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/social-work*') ? 'active' : '' }}" href="{{ route('reception.social-work.index') }}">
-                            <i class="bi bi-heart-fill text-success"></i> Công Tác Xã Hội & Dịch Thuật
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">Quy Trình Ngoại Trú Chuyên Sâu</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/ambulances*') ? 'active' : '' }}" href="{{ route('reception.ambulances.index') }}">
-                            <i class="bi bi-truck-flatbed text-danger"></i> Đội Xe Cấp Cứu Ngoại Viện
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/corporate-screening*') ? 'active' : '' }}" href="{{ route('reception.corporate-screening.index') }}">
-                            <i class="bi bi-buildings-fill text-primary"></i> Khám Sức Khỏe Doanh Nghiệp
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/day-surgeries*') ? 'active' : '' }}" href="{{ route('reception.day-surgeries.index') }}">
-                            <i class="bi bi-hospital-fill text-warning"></i> Phẫu Thuật Trong Ngày (WHO)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/chronic-recalls*') ? 'active' : '' }}" href="{{ route('reception.chronic-recalls.index') }}">
-                            <i class="bi bi-alarm-fill text-info"></i> Tái Khám Tự Động (Recall)
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">Lâm Sàng Cấp Cao & An Toàn JCI</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/news2-rrt*') ? 'active' : '' }}" href="{{ route('reception.news2-rrt.index') }}">
-                            <i class="bi bi-activity text-danger"></i> Cảnh Báo Sớm NEWS2 & RRT
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/risk-assessments*') ? 'active' : '' }}" href="{{ route('reception.risk-assessments.index') }}">
-                            <i class="bi bi-shield-check text-warning"></i> Thang Đo Braden & Morse
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/narcotics*') ? 'active' : '' }}" href="{{ route('reception.narcotics.index') }}">
-                            <i class="bi bi-capsule text-primary"></i> Tủ Thuốc Gây Nghiện TT20
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/occupational-exposure*') ? 'active' : '' }}" href="{{ route('reception.occupational-exposure.index') }}">
-                            <i class="bi bi-bandaid-fill text-danger"></i> Phơi Nhiễm Kim Tiêm & PEP
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">Công Nghệ Dược, CSSD & Vận Hành Giường</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/cold-chain*') ? 'active' : '' }}" href="{{ route('reception.cold-chain.index') }}">
-                            <i class="bi bi-snow text-info"></i> Chuỗi Lạnh IoT Vắc-Xin
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/cssd*') ? 'active' : '' }}" href="{{ route('reception.cssd.index') }}">
-                            <i class="bi bi-tools text-secondary"></i> Tiệt Khuẩn Dụng Cụ CSSD
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/hemodialysis*') ? 'active' : '' }}" href="{{ route('reception.hemodialysis.index') }}">
-                            <i class="bi bi-droplet-fill text-danger"></i> Lọc Máu Thận Nhân Tạo
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/bed-board*') ? 'active' : '' }}" href="{{ route('reception.bed-board.index') }}">
-                            <i class="bi bi-door-open-fill text-success"></i> Quản Lý Buồng Bệnh & Giường
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/wayfinding*') ? 'active' : '' }}" href="{{ route('reception.wayfinding.index') }}">
-                            <i class="bi bi-map-fill text-primary"></i> Bản Đồ Dẫn Đường Trong Nhà
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/pre-visit*') ? 'active' : '' }}" href="{{ route('reception.pre-visit.index') }}">
-                            <i class="bi bi-phone-fill text-info"></i> Tự Khai Báo Pre-Visit
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/claim-scrubber*') ? 'active' : '' }}" href="{{ route('reception.claim-scrubber.index') }}">
-                            <i class="bi bi-file-earmark-code-fill text-warning"></i> Giám Định BHYT & XML 4210
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/living-will*') ? 'active' : '' }}" href="{{ route('reception.living-will.index') }}">
-                            <i class="bi bi-heart-pulse-fill text-danger"></i> Hiến Tạng & Di Chúc Y Tế
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">Smart Hospital Đột Phá (Next-Gen)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/operating-room*') ? 'active' : '' }}" href="{{ route('reception.operating-room.index') }}">
-                            <i class="bi bi-hospital text-info"></i> Phòng Mổ & Hồi Tỉnh PACU
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/clinical-ai*') ? 'active' : '' }}" href="{{ route('reception.clinical-ai.index') }}">
-                            <i class="bi bi-cpu text-warning"></i> AI Lâm Sàng & An Toàn Sinh Học
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/biomedical-infection*') ? 'active' : '' }}" href="{{ route('reception.biomedical-infection.index') }}">
-                            <i class="bi bi-tools text-primary"></i> Kỹ Thuật Y Sinh & KSNK (HAI)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/maternity-oncology*') ? 'active' : '' }}" href="{{ route('reception.maternity-oncology.index') }}">
-                            <i class="bi bi-heart-pulse text-danger"></i> Sản Nhi, Ung Bướu & Giờ Vàng
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/clinical-pharmacy*') ? 'active' : '' }}" href="{{ route('reception.clinical-pharmacy.index') }}">
-                            <i class="bi bi-capsule-pill text-info"></i> Dược Lâm Sàng, TDM & TPN
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/rehab-esg*') ? 'active' : '' }}" href="{{ route('reception.rehab-esg.index') }}">
-                            <i class="bi bi-tree text-success"></i> PHCN, Đông Y YHCT & ESG
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/ai-clinical-decision*') ? 'active' : '' }}" href="{{ route('reception.ai-clinical-decision.index') }}">
-                            <i class="bi bi-cpu text-primary"></i> AI Quyết Định CDSS & Sepsis
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/advanced-specialty*') ? 'active' : '' }}" href="{{ route('reception.advanced-specialty.index') }}">
-                            <i class="bi bi-diagram-3-fill text-danger"></i> Lâm Sàng Chuyên Khoa Sâu
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/hospital-operations*') ? 'active' : '' }}" href="{{ route('reception.hospital-operations.index') }}">
-                            <i class="bi bi-buildings text-warning"></i> Vận Hành & Hậu Cần Thông Minh
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/finance-hr*') ? 'active' : '' }}" href="{{ route('reception.finance-hr.index') }}">
-                            <i class="bi bi-cash-coin text-success"></i> Tài Chính & DRG Y Tế
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/patient-experience*') ? 'active' : '' }}" href="{{ route('reception.patient-experience.index') }}">
-                            <i class="bi bi-person-heart text-info"></i> Trải Nghiệm & Chăm Sóc Số
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading text-warning">Đột Phá Y Khoa Wave 6 (Hưng)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/critical-resuscitation*') ? 'active' : '' }}" href="{{ route('reception.critical-resuscitation.index') }}">
-                            <i class="bi bi-shield-shaded text-danger"></i> Hồi Sức Tích Cực, DERS & PBM
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/transplant-robotics*') ? 'active' : '' }}" href="{{ route('reception.transplant-robotics.index') }}">
-                            <i class="bi bi-robot text-primary"></i> Ghép Tạng, Da Vinci & Hybrid OR
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/emergency-maternity-cardio*') ? 'active' : '' }}" href="{{ route('reception.emergency-maternity-cardio.index') }}">
-                            <i class="bi bi-broadcast text-warning"></i> Cấp Cứu 5G, Sản Nhi & Can Thiệp
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/genomics-hospital-at-home*') ? 'active' : '' }}" href="{{ route('reception.genomics-hospital-at-home.index') }}">
-                            <i class="bi bi-dna text-info"></i> Di Truyền, Biobank & HAH Tại Nhà
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading text-warning">Đột Phá Y Khoa Wave 7 (Hưng)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/oncology-advanced*') ? 'active' : '' }}" href="{{ route('reception.oncology-advanced.index') }}">
-                            <i class="bi bi-radioactive text-danger"></i> Ung Thư 4D, CAR-T & Hội Đồng MTB
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/critical-extracorporeal*') ? 'active' : '' }}" href="{{ route('reception.critical-extracorporeal.index') }}">
-                            <i class="bi bi-lungs text-primary"></i> Hồi Sức Sống Còn, ECMO & CRRT
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/advanced-intervention*') ? 'active' : '' }}" href="{{ route('reception.advanced-intervention.index') }}">
-                            <i class="bi bi-heart-pulse-fill text-danger"></i> Can Thiệp ESD, CIED & Radar Kháng Sinh
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading text-warning">Đột Phá Y Khoa Wave 8 (Hưng)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/critical-resuscitation-safety*') ? 'active' : '' }}" href="{{ route('reception.critical-resuscitation-safety.index') }}">
-                            <i class="bi bi-activity text-danger"></i> Hồi Sức Code Blue, ROTEM & MGPS
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/surgical-chemo-device*') ? 'active' : '' }}" href="{{ route('reception.surgical-chemo-device.index') }}">
-                            <i class="bi bi-tools text-primary"></i> Tiệt Trùng CSSD, Giảm Đau PCA & LVAD
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/patient-safety-pediatric*') ? 'active' : '' }}" href="{{ route('reception.patient-safety-pediatric.index') }}">
-                            <i class="bi bi-shield-lock-fill text-danger"></i> An Ninh Sơ Sinh RTLS & Thử Nghiệm GCP
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading text-warning">Khoa Phòng & Tòa Nhà Wave 9 (Hưng)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/smart-inpatient-ward-facility*') ? 'active' : '' }}" href="{{ route('reception.smart-inpatient-ward-facility.index') }}">
-                            <i class="bi bi-hospital-fill text-primary"></i> Buồng Bệnh & Trạm Điều Dưỡng
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/specialty-high-risk-room*') ? 'active' : '' }}" href="{{ route('reception.specialty-high-risk-room.index') }}">
-                            <i class="bi bi-shield-lock-fill text-warning"></i> Phòng Ghép Tủy PE & Phòng Chì
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/facility-automation-lounge*') ? 'active' : '' }}" href="{{ route('reception.facility-automation-lounge.index') }}">
-                            <i class="bi bi-cpu-fill text-success"></i> Tự Động Hóa Tòa Nhà & Lounge VIP
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading text-warning">Logistics & ESG Wave 10 (Hưng)</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/autonomous-logistics-esg*') ? 'active' : '' }}" href="{{ route('reception.autonomous-logistics-esg.index') }}">
-                            <i class="bi bi-robot text-primary"></i> Robot AGV, Ống Khí Nén & Microgrid
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/asset-engineering-haccp-linen*') ? 'active' : '' }}" href="{{ route('reception.asset-engineering-haccp-linen.index') }}">
-                            <i class="bi bi-geo-alt-fill text-warning"></i> Định Vị BLE, CMMS & Bếp HACCP
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/disaster-safety-fatigue-discharge*') ? 'active' : '' }}" href="{{ route('reception.disaster-safety-fatigue-discharge.index') }}">
-                            <i class="bi bi-shield-shaded text-danger"></i> Thảm Họa HICS & Meds-to-Beds
-                        </a>
-                    </li>
-
-                    <li class="sidebar-heading">Báo Cáo & Liên Thông</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/notifications*') ? 'active' : '' }}" href="{{ route('reception.notifications.index') }}">
-                            <i class="bi bi-chat-quote"></i> Thông Báo ZNS & SMS
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('reception/analytics*') ? 'active' : '' }}" href="{{ route('reception.analytics.index') }}">
-                            <i class="bi bi-graph-up-arrow"></i> Giám Sát Hiệu Suất (BI)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('consultations*') ? 'active' : '' }}" href="{{ route('consultations.index') }}">
-                            <i class="bi bi-people-fill"></i> Hội Chẩn Đa Chuyên Khoa
-                        </a>
+                    @php 
+                        $isCatReceptionActive = request()->is('reception/appointments*') || request()->is('reception/patients*') || 
+                            request()->is('reception/day-beds*') || request()->is('reception/mobility*') || 
+                            request()->is('reception/wayfinding*') || request()->is('reception/pre-visit*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatReceptionActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupReception" 
+                                aria-expanded="{{ $isCatReceptionActive ? 'true' : 'false' }}" aria-controls="groupReception">
+                            <span><i class="bi bi-calendar-check text-info me-2"></i>Tiếp Đón & Sảnh Chờ</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatReceptionActive ? 'show' : '' }}" id="groupReception">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/appointments*') ? 'active' : '' }}" href="{{ route('reception.appointments.index') }}">
+                                        <i class="bi bi-calendar-check"></i> Tiếp nhận & Check-in
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/patients*') ? 'active' : '' }}" href="{{ route('reception.patients.index') }}">
+                                        <i class="bi bi-person-vcard"></i> Quản lý Bệnh nhân
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/day-beds*') ? 'active' : '' }}" href="{{ route('reception.day-beds.index') }}">
+                                        <i class="bi bi-hospital"></i> Giường Ngoại Trú & Lưu Ngày
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/mobility*') ? 'active' : '' }}" href="{{ route('reception.mobility.index') }}">
+                                        <i class="bi bi-person-wheelchair text-primary"></i> Mượn Trả Xe Lăn Sảnh
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/wayfinding*') ? 'active' : '' }}" href="{{ route('reception.wayfinding.index') }}">
+                                        <i class="bi bi-map-fill text-primary"></i> Bản Đồ Dẫn Đường Tòa Nhà
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/pre-visit*') ? 'active' : '' }}" href="{{ route('reception.pre-visit.index') }}">
+                                        <i class="bi bi-phone-fill text-info"></i> Tự Khai Báo Pre-Visit
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 @endif
 
-                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isDoctor()))
-                    <li class="sidebar-heading">Bàn khám Bác sĩ</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('doctor/queue*') ? 'active' : '' }}" href="{{ route('doctor.queue') }}">
-                            <i class="bi bi-heart-pulse"></i> Hàng đợi khám hôm nay
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('consultations*') ? 'active' : '' }}" href="{{ route('consultations.index') }}">
-                            <i class="bi bi-people-fill"></i> Hội Chẩn Đa Chuyên Khoa
-                        </a>
+                {{-- 3. THU PHÍ, VIỆN PHÍ & BẢO HIỂM --}}
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
+                    @php 
+                        $isCatFinanceActive = request()->is('reception/invoices*') || request()->is('reception/wallets*') || 
+                            request()->is('reception/insurance-transfers*') || request()->is('reception/private-insurance*') || 
+                            request()->is('reception/claim-scrubber*') || request()->is('reception/certificates*') || 
+                            request()->is('reception/consents*') || request()->is('reception/record-requests*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatFinanceActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupFinance" 
+                                aria-expanded="{{ $isCatFinanceActive ? 'true' : 'false' }}" aria-controls="groupFinance">
+                            <span><i class="bi bi-wallet2 text-success me-2"></i>Viện Phí & Bảo Hiểm</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatFinanceActive ? 'show' : '' }}" id="groupFinance">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/invoices*') ? 'active' : '' }}" href="{{ route('reception.invoices.index') }}">
+                                        <i class="bi bi-qr-code-scan text-success"></i> Hóa Đơn & Thu Phí VietQR
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/wallets*') ? 'active' : '' }}" href="{{ route('reception.wallets.index') }}">
+                                        <i class="bi bi-wallet2 text-success"></i> Ví Ký Quỹ & Tạm Ứng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/insurance-transfers*') ? 'active' : '' }}" href="{{ route('reception.insurance-transfers.index') }}">
+                                        <i class="bi bi-file-earmark-medical text-primary"></i> Chuyển Tuyến BHYT (M40)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/private-insurance*') ? 'active' : '' }}" href="{{ route('reception.private-insurance.index') }}">
+                                        <i class="bi bi-shield-lock-fill text-info"></i> Bảo Lãnh Tư Nhân (GOP)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/claim-scrubber*') ? 'active' : '' }}" href="{{ route('reception.claim-scrubber.index') }}">
+                                        <i class="bi bi-file-earmark-code-fill text-warning"></i> Giám Định BHYT & XML 4210
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/certificates*') ? 'active' : '' }}" href="{{ route('reception.certificates.index') }}">
+                                        <i class="bi bi-journal-medical"></i> Sổ Giấy Nghỉ BHXH (C65)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/consents*') ? 'active' : '' }}" href="{{ route('reception.consents.index') }}">
+                                        <i class="bi bi-file-earmark-check"></i> Bản Cam Đoan Ký Số
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/record-requests*') ? 'active' : '' }}" href="{{ route('reception.record-requests.index') }}">
+                                        <i class="bi bi-file-earmark-lock2-fill text-warning"></i> Cổng Sao Lục Bệnh Án
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 @endif
 
+                {{-- 4. DƯỢC BỆNH VIỆN & VẮC-XIN --}}
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
+                    @php 
+                        $isCatPharmacyActive = request()->is('reception/pharmacy*') || request()->is('reception/vaccinations*') || 
+                            request()->is('reception/narcotics*') || request()->is('reception/cold-chain*') || request()->is('reception/deliveries*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatPharmacyActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupPharmacy" 
+                                aria-expanded="{{ $isCatPharmacyActive ? 'true' : 'false' }}" aria-controls="groupPharmacy">
+                            <span><i class="bi bi-capsule-pill text-warning me-2"></i>Dược & Tiêm Chủng</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatPharmacyActive ? 'show' : '' }}" id="groupPharmacy">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/pharmacy') || (request()->is('reception/pharmacy*') && !request()->is('reception/pharmacy/inventory*')) ? 'active' : '' }}" href="{{ route('reception.pharmacy.index') }}">
+                                        <i class="bi bi-capsule-pill"></i> Quầy Dược Phát Thuốc
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/pharmacy/inventory*') ? 'active' : '' }}" href="{{ route('reception.pharmacy.inventory.index') }}">
+                                        <i class="bi bi-box-seam"></i> Kho Dược & Tồn Kho (FEFO)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/narcotics*') ? 'active' : '' }}" href="{{ route('reception.narcotics.index') }}">
+                                        <i class="bi bi-capsule text-danger"></i> Tủ Thuốc Gây Nghiện TT20
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/cold-chain*') ? 'active' : '' }}" href="{{ route('reception.cold-chain.index') }}">
+                                        <i class="bi bi-snow text-info"></i> Chuỗi Lạnh IoT Vắc-Xin
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/vaccinations*') ? 'active' : '' }}" href="{{ route('reception.vaccinations.index') }}">
+                                        <i class="bi bi-shield-check text-success"></i> Tiêm Chủng & Sổ Vắc-Xin
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/deliveries*') ? 'active' : '' }}" href="{{ route('reception.deliveries.index') }}">
+                                        <i class="bi bi-box2-heart text-primary"></i> Giao Thuốc Tận Nhà
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 5. CẤP CỨU & AN TOÀN NGƯỜI BỆNH --}}
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
+                    @php 
+                        $isCatEmergencyActive = request()->is('reception/code-red*') || request()->is('reception/ambulances*') || 
+                            request()->is('reception/news2-rrt*') || request()->is('reception/risk-assessments*') || 
+                            request()->is('reception/medical-incidents*') || request()->is('reception/emergency-custody*') || 
+                            request()->is('reception/visitor-passes*') || request()->is('reception/occupational-exposure*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatEmergencyActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupEmergency" 
+                                aria-expanded="{{ $isCatEmergencyActive ? 'true' : 'false' }}" aria-controls="groupEmergency">
+                            <span><i class="bi bi-bell-fill text-danger me-2"></i>Cấp Cứu & An Toàn</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatEmergencyActive ? 'show' : '' }}" id="groupEmergency">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/code-red*') ? 'active' : '' }}" href="{{ route('reception.code-red.index') }}">
+                                        <i class="bi bi-bell-fill text-danger"></i> Báo Động Đỏ Cấp Cứu
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/ambulances*') ? 'active' : '' }}" href="{{ route('reception.ambulances.index') }}">
+                                        <i class="bi bi-truck-flatbed text-danger"></i> Đội Xe Cấp Cứu Ngoại Viện
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/news2-rrt*') ? 'active' : '' }}" href="{{ route('reception.news2-rrt.index') }}">
+                                        <i class="bi bi-activity text-danger"></i> Cảnh Báo Sớm NEWS2 & RRT
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/risk-assessments*') ? 'active' : '' }}" href="{{ route('reception.risk-assessments.index') }}">
+                                        <i class="bi bi-shield-check text-warning"></i> Thang Đo Braden & Morse
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/medical-incidents*') ? 'active' : '' }}" href="{{ route('reception.medical-incidents.index') }}">
+                                        <i class="bi bi-shield-exclamation text-danger"></i> Báo Cáo Sự Cố (Near-Miss)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/emergency-custody*') ? 'active' : '' }}" href="{{ route('reception.emergency-custody.index') }}">
+                                        <i class="bi bi-safe2-fill text-secondary"></i> Tài Sản Cấp Cứu & Đồ Rơi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/visitor-passes*') ? 'active' : '' }}" href="{{ route('reception.visitor-passes.index') }}">
+                                        <i class="bi bi-person-badge-fill text-info"></i> Thẻ Thăm Bệnh Điện Tử
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/occupational-exposure*') ? 'active' : '' }}" href="{{ route('reception.occupational-exposure.index') }}">
+                                        <i class="bi bi-bandaid-fill text-danger"></i> Phơi Nhiễm Kim Tiêm & PEP
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 6. CẬN LÂM SÀNG & BUỒNG BỆNH --}}
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
+                    @php 
+                        $isCatDiagnosticsActive = request()->is('reception/lab-orders*') || request()->is('reception/blood-transfusions*') || 
+                            request()->is('reception/bed-board*') || request()->is('reception/hemodialysis*') || 
+                            request()->is('reception/cssd*') || request()->is('reception/nutrition*') || 
+                            request()->is('reception/social-work*') || request()->is('reception/living-will*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatDiagnosticsActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupDiagnostics" 
+                                aria-expanded="{{ $isCatDiagnosticsActive ? 'true' : 'false' }}" aria-controls="groupDiagnostics">
+                            <span><i class="bi bi-moisture text-primary me-2"></i>Cận Lâm Sàng & Buồng Bệnh</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatDiagnosticsActive ? 'show' : '' }}" id="groupDiagnostics">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/lab-orders*') ? 'active' : '' }}" href="{{ route('reception.lab-orders.index') }}">
+                                        <i class="bi bi-moisture text-info"></i> Cận Lâm Sàng & Xét Nghiệm
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/blood-transfusions*') ? 'active' : '' }}" href="{{ route('reception.blood-transfusions.index') }}">
+                                        <i class="bi bi-droplet-half text-danger"></i> An Toàn Truyền Máu (ABO/Rh)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/bed-board*') ? 'active' : '' }}" href="{{ route('reception.bed-board.index') }}">
+                                        <i class="bi bi-door-open-fill text-success"></i> Quản Lý Buồng Bệnh & Giường
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/hemodialysis*') ? 'active' : '' }}" href="{{ route('reception.hemodialysis.index') }}">
+                                        <i class="bi bi-droplet-fill text-danger"></i> Lọc Máu Thận Nhân Tạo
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/cssd*') ? 'active' : '' }}" href="{{ route('reception.cssd.index') }}">
+                                        <i class="bi bi-tools text-secondary"></i> Tiệt Khuẩn Dụng Cụ CSSD
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/nutrition*') ? 'active' : '' }}" href="{{ route('reception.nutrition.index') }}">
+                                        <i class="bi bi-heart-pulse text-success"></i> Dinh Dưỡng & Thực Đơn
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/social-work*') ? 'active' : '' }}" href="{{ route('reception.social-work.index') }}">
+                                        <i class="bi bi-heart-fill text-success"></i> Công Tác Xã Hội & Dịch Thuật
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/living-will*') ? 'active' : '' }}" href="{{ route('reception.living-will.index') }}">
+                                        <i class="bi bi-heart-pulse-fill text-danger"></i> Hiến Tạng & Di Chúc Y Tế
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 7. BÀN KHÁM BÁC SĨ & NGOẠI TRÚ --}}
+                @php 
+                    $isCatClinicalActive = request()->is('doctor/queue*') || request()->is('consultations*') || 
+                        request()->is('reception/corporate-screening*') || request()->is('reception/day-surgeries*') || 
+                        request()->is('reception/chronic-recalls*');
+                @endphp
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isDoctor() || Auth::user()->isReceptionist()))
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatClinicalActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupClinical" 
+                                aria-expanded="{{ $isCatClinicalActive ? 'true' : 'false' }}" aria-controls="groupClinical">
+                            <span><i class="bi bi-heart-pulse text-danger me-2"></i>Khám Bệnh & Bác Sĩ</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatClinicalActive ? 'show' : '' }}" id="groupClinical">
+                            <ul class="nav flex-column sidebar-subnav">
+                                @if(Auth::user()->isAdmin() || Auth::user()->isDoctor())
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->is('doctor/queue*') ? 'active' : '' }}" href="{{ route('doctor.queue') }}">
+                                            <i class="bi bi-heart-pulse"></i> Hàng đợi khám hôm nay
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->is('consultations*') ? 'active' : '' }}" href="{{ route('consultations.index') }}">
+                                            <i class="bi bi-people-fill"></i> Hội Chẩn Đa Chuyên Khoa
+                                        </a>
+                                    </li>
+                                @endif
+                                @if(Auth::user()->isAdmin() || Auth::user()->isReceptionist())
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->is('reception/corporate-screening*') ? 'active' : '' }}" href="{{ route('reception.corporate-screening.index') }}">
+                                            <i class="bi bi-buildings-fill text-primary"></i> Khám Sức Khỏe Doanh Nghiệp
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->is('reception/day-surgeries*') ? 'active' : '' }}" href="{{ route('reception.day-surgeries.index') }}">
+                                            <i class="bi bi-hospital-fill text-warning"></i> Phẫu Thuật Trong Ngày (WHO)
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->is('reception/chronic-recalls*') ? 'active' : '' }}" href="{{ route('reception.chronic-recalls.index') }}">
+                                            <i class="bi bi-alarm-fill text-info"></i> Tái Khám Tự Động (Recall)
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 8. KỸ THUẬT Y KHOA CHUYÊN SÂU (SMART HOSPITAL SUITE) --}}
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
+                    @php 
+                        $isCatSmartHospitalActive = request()->is('reception/operating-room*') || request()->is('reception/clinical-ai*') || 
+                            request()->is('reception/biomedical-infection*') || request()->is('reception/maternity-oncology*') || 
+                            request()->is('reception/clinical-pharmacy*') || request()->is('reception/rehab-esg*') || 
+                            request()->is('reception/ai-clinical-decision*') || request()->is('reception/advanced-specialty*') || 
+                            request()->is('reception/hospital-operations*') || request()->is('reception/finance-hr*') || 
+                            request()->is('reception/patient-experience*') || request()->is('reception/critical-resuscitation*') || 
+                            request()->is('reception/transplant-robotics*') || request()->is('reception/emergency-maternity-cardio*') || 
+                            request()->is('reception/genomics-hospital-at-home*') || request()->is('reception/oncology-advanced*') || 
+                            request()->is('reception/critical-extracorporeal*') || request()->is('reception/advanced-intervention*') || 
+                            request()->is('reception/critical-resuscitation-safety*') || request()->is('reception/surgical-chemo-device*') || 
+                            request()->is('reception/patient-safety-pediatric*') || request()->is('reception/smart-inpatient-ward-facility*') || 
+                            request()->is('reception/specialty-high-risk-room*') || request()->is('reception/facility-automation-lounge*') || 
+                            request()->is('reception/autonomous-logistics-esg*') || request()->is('reception/asset-engineering-haccp-linen*') || 
+                            request()->is('reception/disaster-safety-fatigue-discharge*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatSmartHospitalActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupSmartHospital" 
+                                aria-expanded="{{ $isCatSmartHospitalActive ? 'true' : 'false' }}" aria-controls="groupSmartHospital">
+                            <span><i class="bi bi-cpu-fill text-info me-2"></i>Kỹ Thuật Y Khoa Chuyên Sâu</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatSmartHospitalActive ? 'show' : '' }}" id="groupSmartHospital">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/operating-room*') ? 'active' : '' }}" href="{{ route('reception.operating-room.index') }}">
+                                        <i class="bi bi-hospital text-info"></i> Phòng Mổ & Hồi Tỉnh PACU
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/clinical-ai*') ? 'active' : '' }}" href="{{ route('reception.clinical-ai.index') }}">
+                                        <i class="bi bi-cpu text-warning"></i> AI Lâm Sàng & An Toàn Sinh Học
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/biomedical-infection*') ? 'active' : '' }}" href="{{ route('reception.biomedical-infection.index') }}">
+                                        <i class="bi bi-tools text-primary"></i> Kỹ Thuật Y Sinh & KSNK (HAI)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/maternity-oncology*') ? 'active' : '' }}" href="{{ route('reception.maternity-oncology.index') }}">
+                                        <i class="bi bi-heart-pulse text-danger"></i> Sản Nhi, Ung Bướu & Giờ Vàng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/clinical-pharmacy*') ? 'active' : '' }}" href="{{ route('reception.clinical-pharmacy.index') }}">
+                                        <i class="bi bi-capsule-pill text-info"></i> Dược Lâm Sàng, TDM & TPN
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/rehab-esg*') ? 'active' : '' }}" href="{{ route('reception.rehab-esg.index') }}">
+                                        <i class="bi bi-tree text-success"></i> PHCN, Đông Y YHCT & ESG
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/ai-clinical-decision*') ? 'active' : '' }}" href="{{ route('reception.ai-clinical-decision.index') }}">
+                                        <i class="bi bi-cpu text-primary"></i> AI Quyết Định CDSS & Sepsis
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/advanced-specialty*') ? 'active' : '' }}" href="{{ route('reception.advanced-specialty.index') }}">
+                                        <i class="bi bi-diagram-3-fill text-danger"></i> Lâm Sàng Chuyên Khoa Sâu
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/hospital-operations*') ? 'active' : '' }}" href="{{ route('reception.hospital-operations.index') }}">
+                                        <i class="bi bi-buildings text-warning"></i> Vận Hành & Hậu Cần Khoa Phòng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/finance-hr*') ? 'active' : '' }}" href="{{ route('reception.finance-hr.index') }}">
+                                        <i class="bi bi-cash-coin text-success"></i> Tài Chính & DRG Y Tế
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/patient-experience*') ? 'active' : '' }}" href="{{ route('reception.patient-experience.index') }}">
+                                        <i class="bi bi-person-heart text-info"></i> Trải Nghiệm & Chăm Sóc Số
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/critical-resuscitation*') ? 'active' : '' }}" href="{{ route('reception.critical-resuscitation.index') }}">
+                                        <i class="bi bi-shield-shaded text-danger"></i> Hồi Sức Tích Cực, DERS & PBM
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/transplant-robotics*') ? 'active' : '' }}" href="{{ route('reception.transplant-robotics.index') }}">
+                                        <i class="bi bi-robot text-primary"></i> Ghép Tạng, Da Vinci & Hybrid OR
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/emergency-maternity-cardio*') ? 'active' : '' }}" href="{{ route('reception.emergency-maternity-cardio.index') }}">
+                                        <i class="bi bi-broadcast text-warning"></i> Cấp Cứu 5G, Sản Nhi & Can Thiệp
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/genomics-hospital-at-home*') ? 'active' : '' }}" href="{{ route('reception.genomics-hospital-at-home.index') }}">
+                                        <i class="bi bi-dna text-info"></i> Di Truyền, Biobank & HAH Tại Nhà
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/oncology-advanced*') ? 'active' : '' }}" href="{{ route('reception.oncology-advanced.index') }}">
+                                        <i class="bi bi-radioactive text-danger"></i> Ung Thư 4D, CAR-T & Hội Đồng MTB
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/critical-extracorporeal*') ? 'active' : '' }}" href="{{ route('reception.critical-extracorporeal.index') }}">
+                                        <i class="bi bi-lungs text-primary"></i> Hồi Sức Sống Còn, ECMO & CRRT
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/advanced-intervention*') ? 'active' : '' }}" href="{{ route('reception.advanced-intervention.index') }}">
+                                        <i class="bi bi-heart-pulse-fill text-danger"></i> Can Thiệp ESD, CIED & Radar Kháng Sinh
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/critical-resuscitation-safety*') ? 'active' : '' }}" href="{{ route('reception.critical-resuscitation-safety.index') }}">
+                                        <i class="bi bi-activity text-danger"></i> Hồi Sức Code Blue, ROTEM & MGPS
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/surgical-chemo-device*') ? 'active' : '' }}" href="{{ route('reception.surgical-chemo-device.index') }}">
+                                        <i class="bi bi-tools text-primary"></i> Tiệt Trùng CSSD, Giảm Đau PCA & LVAD
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/patient-safety-pediatric*') ? 'active' : '' }}" href="{{ route('reception.patient-safety-pediatric.index') }}">
+                                        <i class="bi bi-shield-lock-fill text-danger"></i> An Ninh Sơ Sinh RTLS & Thử Nghiệm GCP
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/smart-inpatient-ward-facility*') ? 'active' : '' }}" href="{{ route('reception.smart-inpatient-ward-facility.index') }}">
+                                        <i class="bi bi-hospital-fill text-primary"></i> Buồng Bệnh & Trạm Điều Dưỡng
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/specialty-high-risk-room*') ? 'active' : '' }}" href="{{ route('reception.specialty-high-risk-room.index') }}">
+                                        <i class="bi bi-shield-lock-fill text-warning"></i> Phòng Ghép Tủy PE & Phòng Chì
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/facility-automation-lounge*') ? 'active' : '' }}" href="{{ route('reception.facility-automation-lounge.index') }}">
+                                        <i class="bi bi-cpu-fill text-success"></i> Tự Động Hóa Tòa Nhà & Lounge VIP
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/autonomous-logistics-esg*') ? 'active' : '' }}" href="{{ route('reception.autonomous-logistics-esg.index') }}">
+                                        <i class="bi bi-robot text-primary"></i> Robot AGV, Ống Khí Nén & Microgrid
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/asset-engineering-haccp-linen*') ? 'active' : '' }}" href="{{ route('reception.asset-engineering-haccp-linen.index') }}">
+                                        <i class="bi bi-geo-alt-fill text-warning"></i> Định Vị BLE, CMMS & Bếp HACCP
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/disaster-safety-fatigue-discharge*') ? 'active' : '' }}" href="{{ route('reception.disaster-safety-fatigue-discharge.index') }}">
+                                        <i class="bi bi-shield-shaded text-danger"></i> Thảm Họa HICS & Meds-to-Beds
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 9. BÁO CÁO & THỐNG KÊ --}}
+                @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isReceptionist()))
+                    @php 
+                        $isCatReportsActive = request()->is('reception/analytics*') || request()->is('reception/surveys*') || request()->is('reception/notifications*');
+                    @endphp
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header {{ $isCatReportsActive ? 'active-category' : '' }}" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupReports" 
+                                aria-expanded="{{ $isCatReportsActive ? 'true' : 'false' }}" aria-controls="groupReports">
+                            <span><i class="bi bi-graph-up-arrow text-success me-2"></i>Báo Cáo & Thống Kê</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse {{ $isCatReportsActive ? 'show' : '' }}" id="groupReports">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/analytics*') ? 'active' : '' }}" href="{{ route('reception.analytics.index') }}">
+                                        <i class="bi bi-graph-up-arrow"></i> Giám Sát Hiệu Suất (BI)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/surveys*') ? 'active' : '' }}" href="{{ route('reception.surveys.index') }}">
+                                        <i class="bi bi-star-half text-warning"></i> Khảo Sát Hài Lòng BYT
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('reception/notifications*') ? 'active' : '' }}" href="{{ route('reception.notifications.index') }}">
+                                        <i class="bi bi-chat-quote text-info"></i> Thông Báo ZNS & SMS
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 10. CỔNG THÔNG TIN BỆNH NHÂN (PATIENT) --}}
                 @if(Auth::check() && Auth::user()->isPatient())
-                    <li class="sidebar-heading">Cổng thông tin Bệnh nhân</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('patient/history*') ? 'active' : '' }}" href="{{ route('patient.history') }}">
-                            <i class="bi bi-journal-medical"></i> Lịch sử khám bệnh
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('booking') ? 'active' : '' }}" href="{{ route('booking.create') }}">
-                            <i class="bi bi-calendar-plus"></i> Đặt lịch khám mới
-                        </a>
+                    <li class="sidebar-group-item mb-1">
+                        <button class="sidebar-category-header active-category" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#groupPatient" 
+                                aria-expanded="true" aria-controls="groupPatient">
+                            <span><i class="bi bi-person-fill text-primary me-2"></i>Cổng Bệnh Nhân</span>
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="collapse show" id="groupPatient">
+                            <ul class="nav flex-column sidebar-subnav">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('patient/history*') ? 'active' : '' }}" href="{{ route('patient.history') }}">
+                                        <i class="bi bi-journal-medical"></i> Lịch sử khám bệnh
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->is('booking') ? 'active' : '' }}" href="{{ route('booking.create') }}">
+                                        <i class="bi bi-calendar-plus"></i> Đặt lịch khám mới
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 @endif
 
-                <li class="sidebar-heading">Cài đặt cá nhân</li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('profile/password*') ? 'active' : '' }}" href="{{ route('profile.password') }}">
-                        <i class="bi bi-shield-lock"></i> Đổi mật khẩu
-                    </a>
+                {{-- 11. CÀI ĐẶT TÀI KHOẢN --}}
+                <li class="sidebar-group-item mb-1">
+                    <button class="sidebar-category-header" 
+                            type="button" data-bs-toggle="collapse" data-bs-target="#groupSettings" 
+                            aria-expanded="false" aria-controls="groupSettings">
+                        <span><i class="bi bi-gear-fill text-secondary me-2"></i>Hệ Thống & Tài Khoản</span>
+                        <i class="bi bi-chevron-down chevron-icon"></i>
+                    </button>
+                    <div class="collapse" id="groupSettings">
+                        <ul class="nav flex-column sidebar-subnav">
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('profile/password*') ? 'active' : '' }}" href="{{ route('profile.password') }}">
+                                    <i class="bi bi-shield-lock"></i> Đổi mật khẩu
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url('/') }}" target="_blank">
+                                    <i class="bi bi-box-arrow-up-right"></i> Xem Trang chủ Web
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/') }}" target="_blank">
-                        <i class="bi bi-box-arrow-up-right"></i> Xem Trang chủ Web
-                    </a>
-                </li>
+
             </ul>
+
+            <!-- Thông báo khi không tìm thấy kết quả tìm kiếm -->
+            <div id="sidebarNoResults" class="text-center py-4 text-secondary small d-none">
+                <i class="bi bi-search fs-4 d-block mb-1 text-muted"></i>
+                Không tìm thấy chức năng phù hợp
+            </div>
         </div>
 
         <div class="pt-3 border-top border-secondary border-opacity-25 mt-auto">
@@ -612,13 +878,6 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <!-- Nút Báo Cáo Đóng Góp Nguyễn Văn Hưng cho Thầy & Hội Đồng -->
-                <button type="button" class="btn btn-sm text-white d-inline-flex align-items-center gap-1 rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#projectContributionModal" style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); font-weight: 600; font-size: 0.8rem; border: none;">
-                    <i class="bi bi-trophy-fill text-warning"></i>
-                    <span class="d-none d-md-inline">Đóng góp đồ án:</span> <strong>Nguyễn Văn Hưng</strong>
-                    <span class="badge bg-white text-dark ms-1 rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">120+ Modules • JCI & BYT</span>
-                </button>
-
                 <a href="{{ route('booking.create') }}" class="btn btn-sm btn-primary d-none d-md-inline-flex align-items-center gap-1 rounded-pill">
                     <i class="bi bi-plus-circle"></i> Đặt lịch hẹn
                 </a>
@@ -640,14 +899,14 @@
                         </li>
                         <li>
                             <a class="dropdown-item py-2" href="{{ route('profile.password') }}">
-                                <i class="bi bi-shield-lock me-2 text-warning"></i> Đổi mật khẩu
+                                <i class="bi bi-key me-2 text-muted"></i> Đổi mật khẩu
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="dropdown-item text-danger py-2">
+                                <button type="submit" class="dropdown-item py-2 text-danger">
                                     <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
                                 </button>
                             </form>
@@ -657,9 +916,37 @@
             </div>
         </header>
 
-        <!-- Main Workspace -->
-        <main class="p-3 p-md-4 flex-grow-1">
-            <x-alert />
+        <!-- Dynamic Page Content -->
+        <main class="p-4 flex-grow-1">
+            <!-- Global Flash Messages -->
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <div>{{ session('success') }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <div>{{ session('error') }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                    <div class="fw-bold mb-1"><i class="bi bi-exclamation-circle-fill me-1"></i> Vui lòng kiểm tra lại dữ liệu:</div>
+                    <ul class="mb-0 ps-3">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             @yield('content')
         </main>
 
@@ -669,689 +956,106 @@
                 &copy; {{ date('Y') }} <strong>Bệnh Viện Đa Khoa Tâm Anh</strong> - Hệ thống quản lý khám chữa bệnh ngoại trú.
             </div>
             <div>
-                Phiên bản đồ án chuẩn hóa MVC (PHP 8.2 + Laravel 12)
+                Hệ thống Quản Trị Bệnh Viện Đa Khoa Chuẩn Doanh Nghiệp
             </div>
         </footer>
     </div>
 
-    <!-- Modal Hồ Sơ Đóng Góp Kỹ Thuật Đồ Án - Nguyễn Văn Hưng (Dành cho Thầy & Hội Đồng Thẩm Định) -->
-    <div class="modal fade" id="projectContributionModal" tabindex="-1" aria-labelledby="projectContributionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem; overflow: hidden;">
-                <!-- Modal Header -->
-                <div class="modal-header text-white px-4 py-3" style="background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 48px; height: 48px;">
-                            <i class="bi bi-trophy-fill fs-3 text-warning"></i>
-                        </div>
-                        <div>
-                            <h5 class="modal-title fw-bold mb-0" id="projectContributionModalLabel">
-                                HỒ SƠ ĐÓNG GÓP KỸ THUẬT & NGHIỆP VỤ Y KHOA - SMART HOSPITAL SUITE
-                            </h5>
-                            <small class="text-white-50">Sinh viên thực hiện: <strong class="text-white">NGUYỄN VĂN HƯNG</strong> • Nhánh: <code class="text-warning bg-dark bg-opacity-25 px-2 py-0.5 rounded">feature/patients-and-reception</code></small>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="modal-body p-4 bg-light">
-                    <!-- KPI Cards -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-6 col-lg-3">
-                            <div class="card h-100 border-0 shadow-sm bg-white p-3 text-center rounded-3 border-top border-4 border-primary">
-                                <div class="text-primary fs-2 fw-bold mb-1">150+</div>
-                                <div class="fw-semibold text-dark small">Phân Hệ Y Khoa Chuyên Sâu</div>
-                                <small class="text-muted" style="font-size: 0.72rem;">Code Blue, Khí MGPS, ROTEM, Helipad, CSSD, PCA, IONM, LVAD, RTLS, Braden, Buồng IoT, Ghép Tủy PE, Phòng Chì, Phòng Sạch ISO 5, FM-200, Robot AGV, Ống Khí Nén PTS, Microgrid ESG, Nước RO Thận, CMMS, Thảm Họa HICS</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="card h-100 border-0 shadow-sm bg-white p-3 text-center rounded-3 border-top border-4 border-success">
-                                <div class="text-success fs-2 fw-bold mb-1">365+ / 365+</div>
-                                <div class="fw-semibold text-dark small">Kiểm Thử Tự Động (100% Green)</div>
-                                <small class="text-muted" style="font-size: 0.72rem;">1,600+ Assertions • 0 Failures • 0 Errors</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="card h-100 border-0 shadow-sm bg-white p-3 text-center rounded-3 border-top border-4 border-warning">
-                                <div class="text-warning fs-2 fw-bold mb-1">100%</div>
-                                <div class="fw-semibold text-dark small">Chuẩn Hóa Y Khoa & Pháp Lý</div>
-                                <small class="text-muted" style="font-size: 0.72rem;">Luật KCB 2023, TT 32, TT 43, TT 20, QĐ 4210, JCI, AHA & IAEA</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="card h-100 border-0 shadow-sm bg-white p-3 text-center rounded-3 border-top border-4 border-info">
-                                <div class="text-info fs-2 fw-bold mb-1">PR #6</div>
-                                <div class="fw-semibold text-dark small">GitHub Pull Request Đồng Bộ</div>
-                                <small class="text-muted" style="font-size: 0.72rem;">Mọi thay đổi đều được commit & push minh bạch</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Git & Review Guide -->
-                    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-github fs-3 text-dark"></i>
-                            <div>
-                                <strong class="text-dark">Theo dõi tiến độ trực tiếp trên GitHub:</strong>
-                                <div class="small text-muted">Pull Request #6 trên kho lưu trữ chính thức đã tự động cập nhật toàn bộ mã nguồn mới nhất.</div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <a href="https://github.com/quy0358/He-Thong-Quan-Ly-Benh-Vien-Tam-Anh/pull/6" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3">
-                                <i class="bi bi-box-arrow-up-right me-1"></i> Mở GitHub PR #6
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- 10 Nhóm Nghiệp Vụ Chính -->
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-grid-fill text-primary me-2"></i>Bản Đồ 10 Nhóm Nghiệp Vụ Y Khoa Trọng Tâm Phát Triển:</h6>
-                    <div class="row g-3">
-                        <!-- Nhóm 1 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-person-workspace"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">1. Tiếp Đón & Smart Kiosk</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Kiosk cảm ứng sảnh & quét CCCD chip</li>
-                                    <li>✓ In phiếu số thứ tự nhiệt 80mm có mã QR</li>
-                                    <li>✓ Phát thanh gọi số tự động Web Speech AI</li>
-                                    <li>✓ Check-in tiếp đón ca hẹn & Khám vãng lai</li>
-                                    <li>✓ In vòng tay nhận diện mã vạch Barcode 128</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 2 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2"><i class="bi bi-bell-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">2. Cấp Cứu & Báo Động Đỏ</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Phân luồng Cấp cứu Triage ATS 5 cấp</li>
-                                    <li>✓ Kích hoạt Báo động đỏ toàn viện Code Red</li>
-                                    <li>✓ Cảnh báo sớm suy sụp NEWS2 & Đội RRT</li>
-                                    <li>✓ Giám sát tai nạn kim tiêm & Phơi nhiễm PEP</li>
-                                    <li>✓ Thang đo Morse té ngã & Braden loét da</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 3 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-capsule"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">3. Dược Phẩm & An Toàn Thuốc</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Quầy dược ngoại trú & Kho tồn GPP</li>
-                                    <li>✓ CDSS cảnh báo dị ứng chéo kháng sinh</li>
-                                    <li>✓ Tem nhãn phụ Smart Label cảnh báo uống</li>
-                                    <li>✓ Tủ thuốc trực cấp cứu & Thuốc độc TT20</li>
-                                    <li>✓ Ký duyệt kép 2 người khi xuất thuốc nghiện</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 4 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-info rounded-circle p-2 text-white"><i class="bi bi-droplet-half"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">4. Xét Nghiệm & Máu An Toàn</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Cận lâm sàng & Báo động Panic Value</li>
-                                    <li>✓ Truyền máu đối chiếu kép 2 Điều dưỡng</li>
-                                    <li>✓ Định nhóm máu ABO/Rh tại giường</li>
-                                    <li>✓ Theo dõi sinh hiệu 15p đầu truyền máu</li>
-                                    <li>✓ Báo cáo phản ứng bất lợi sau truyền máu</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 5 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-secondary rounded-circle p-2"><i class="bi bi-snow"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">5. Chuỗi Lạnh IoT & Tiệt Khuẩn CSSD</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Giám sát nhiệt độ tủ vắc-xin 2-8°C IoT</li>
-                                    <li>✓ Tự động khóa điện tử khi quá nhiệt</li>
-                                    <li>✓ Quản lý mâm mổ & chu kỳ tiệt khuẩn CSSD</li>
-                                    <li>✓ Kiểm định chất chỉ thị sinh học/hóa học</li>
-                                    <li>✓ Hạn sử dụng vô trùng & mã QR khay mổ</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 6 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-success rounded-circle p-2"><i class="bi bi-door-open-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">6. Buồng Bệnh & Thận Nhân Tạo</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Sơ đồ giường bệnh thời gian thực trực quan</li>
-                                    <li>✓ Quy trình khử khuẩn Cloramin B giường trống</li>
-                                    <li>✓ Quản lý ca lọc máu chu kỳ & rút dịch UF</li>
-                                    <li>✓ Giám sát số lần tái dùng quả lọc thận</li>
-                                    <li>✓ Đơn vị lưu viện ban ngày (Day-Bed)</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 7 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-file-earmark-medical"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">7. BHYT, Viện Phí & Ví Ký Quỹ</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Giấy chuyển tuyến BHYT chuẩn Mẫu 40/BYT</li>
-                                    <li>✓ Giám định BHYT thời gian thực & XML 4210</li>
-                                    <li>✓ Ví ký quỹ & tạm ứng viện phí kế toán kép</li>
-                                    <li>✓ Bảo lãnh viện phí tư nhân TPA GOP (Direct Billing)</li>
-                                    <li>✓ Hóa đơn thanh toán mã VietQR Napas247</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 8 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2"><i class="bi bi-shield-lock-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">8. Pháp Lý Y Tế & An Toàn JCI</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Sao lục bệnh án điện tử (Điều 69 Luật KCB)</li>
-                                    <li>✓ Niêm phong tài sản cấp cứu & Đồ thất lạc</li>
-                                    <li>✓ Thẻ thăm bệnh JCI giới hạn tối đa 2 người</li>
-                                    <li>✓ Báo cáo sự cố Near-Miss & Phân tích RCA TT43</li>
-                                    <li>✓ Đăng ký hiến mô tạng & Di chúc y tế (DNR)</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 9 & 10 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-dark rounded-circle p-2"><i class="bi bi-truck"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">9 & 10. Vận Hành Ngoại Viện & Số Hóa</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Đội xe cấp cứu Mobile ICU tính cước km tự động</li>
-                                    <li>✓ Khám sức khỏe đoàn doanh nghiệp TT 32/2023</li>
-                                    <li>✓ Phẫu thuật trong ngày Day Surgery WHO Checklist</li>
-                                    <li>✓ Bản đồ dẫn đường trong nhà 3D Wayfinding</li>
-                                    <li>✓ Cổng tự khai báo triệu chứng từ xa Pre-Visit</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 11 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-info rounded-circle p-2 text-white"><i class="bi bi-capsule-pill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">11. Dược Lâm Sàng, TDM & TPN</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Giám sát nồng độ thuốc hẹp TDM (Vancomycin/Gentamicin)</li>
-                                    <li>✓ Dinh dưỡng tĩnh mạch toàn phần TPN All-in-One</li>
-                                    <li>✓ Thang điểm Naranjo đánh giá biến cố có hại ADR</li>
-                                    <li>✓ Đề xuất chỉnh liều tự động theo Clearance Creatinine</li>
-                                    <li>✓ Kiểm soát nồng độ đáy Cmin & nguy cơ độc tính thận</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 12 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-success rounded-circle p-2 text-white"><i class="bi bi-tree-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">12. PHCN, Đông Y YHCT, ESG & ALARA</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Thang đo độc lập chức năng FIM & Kế hoạch PHCN</li>
-                                    <li>✓ Kê đơn YHCT tự động chặn Tương Kỵ Thập Bát Phản</li>
-                                    <li>✓ Biểu đồ Bhutani Nomogram dự báo vàng da sơ sinh</li>
-                                    <li>✓ Ngân hàng sữa mẹ thanh trùng Pasteur ISO 22000</li>
-                                    <li>✓ Bệnh viện xanh ESG & Kiểm soát liều bức xạ ALARA</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 13 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2 text-white"><i class="bi bi-cpu-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">13. AI CDSS, Sepsis & Rules Engine</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Dự báo Sepsis sớm qSOFA & SOFA liên tục thời gian thực</li>
-                                    <li>✓ Wells PE/DVT, HEART Score đánh giá đau ngực cấp MACE</li>
-                                    <li>✓ Mã hóa bệnh án ICD-10 tự động bằng AI NLP</li>
-                                    <li>✓ Đối chiếu thuốc Medication Reconciliation & Cân bằng dịch</li>
-                                    <li>✓ Phác đồ chống đông Warfarin/NOACs & HAS-BLED xuất huyết</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 14 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2 text-white"><i class="bi bi-lightning-charge-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">14. Đột Quỵ, STEMI, Gây Mê & Máy Thở</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Stroke Giờ Vàng Door-to-Needle ≤60p & ASPECTS/NIHSS</li>
-                                    <li>✓ STEMI Cathlab Kích hoạt khẩn Door-to-Balloon ≤90p</li>
-                                    <li>✓ Hồ sơ gây mê điện tử AIMS, ASA, Mallampati & Aldrete</li>
-                                    <li>✓ Berlin ARDS, kiểm soát Driving Pressure & Cai máy SBT</li>
-                                    <li>✓ Theo dõi trẻ non tháng NICU, Apgar, dịch & Calorie</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 15 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-bandaid-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">15. Chăm Sóc Vết Thương, Đau & Xơ Gan</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Loét tì đè PUSH Tool & Thang đo nguy cơ Braden</li>
-                                    <li>✓ Bậc thang giảm đau WHO, VAS/NRS & Đánh giá sau can thiệp</li>
-                                    <li>✓ Sàng lọc tâm thần PHQ-9, GAD-7 & An toàn tự sát C-SSRS</li>
-                                    <li>✓ Xơ gan Child-Pugh, MELD-Na tính tỷ lệ tử vong 3 tháng</li>
-                                    <li>✓ Bàn chân đái tháo đường Wagner Grade & Chỉ số mạch ABI</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 16 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-secondary rounded-circle p-2 text-white"><i class="bi bi-hospital"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">16. Vận Hành Phòng Mổ & Hậu Cần Dinh Dưỡng</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Lịch mổ Block Scheduling, tính công suất OR & Turnover time</li>
-                                    <li>✓ Điều phối hộ lý Porter Tracking theo SLA khẩn cấp</li>
-                                    <li>✓ Suất ăn bệnh lý tính Calorie, Protein, BMI & Hạn chế muối</li>
-                                    <li>✓ Báo cáo chất lượng dịch vụ vận chuyển bệnh nhân</li>
-                                    <li>✓ Kiểm soát tồn trữ & Quản lý thiết bị chuyên dụng</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 17 -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-info rounded-circle p-2 text-white"><i class="bi bi-person-bounding-box"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">17. DRG, Nghiên Cứu, Digital Twin & Telehealth</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Thanh toán DRG nhóm chẩn đoán & Trọng số CMI, Outlier</li>
-                                    <li>✓ Quản lý đề tài thử nghiệm lâm sàng GCP & Ngân sách grant</li>
-                                    <li>✓ Bản sao số bệnh nhân Digital Twin 360° & Khoảng trống chăm sóc</li>
-                                    <li>✓ Khám từ xa Telehealth Video Zoom Y Tế tích hợp đơn thuốc</li>
-                                    <li>✓ Checklist xuất viện thông minh & Theo dõi sau xuất viện 30 ngày</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 18 (Wave 6) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-danger border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2 text-white"><i class="bi bi-shield-shaded"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">18. Hồi Sức Tích Cực DERS, Y-Site, MTP & PBM</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Bơm tiêm thông minh DERS Guardrail chặn liều tử vong Hard Limit</li>
-                                    <li>✓ Ma trận tương kỵ chạc Y-site 2 đường truyền chuẩn Trissel's 2026</li>
-                                    <li>✓ MTP truyền máu tối cấp tỷ lệ cân bằng 1:1:1 phân tích TEG/ROTEM</li>
-                                    <li>✓ Quản lý máu PBM & Máy thu hồi máu Cell Saver tự thân trong mổ</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 19 (Wave 6) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-primary border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2 text-white"><i class="bi bi-robot"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">19. Ghép Tạng HLA, Robot Da Vinci & Hybrid OR</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Điều phối ghép tạng: Khớp HLA, Crossmatch & Cold Ischemia</li>
-                                    <li>✓ Robot phẫu thuật Da Vinci Xi & Đếm chu kỳ sử dụng tay dao EndoWrist</li>
-                                    <li>✓ Phòng mổ Hybrid đa năng, điều hướng StealthStation TRE & Nguy cơ CIN</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 20 (Wave 6) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-warning border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-heart-pulse-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">20. Cấp Cứu 5G, Thảm Họa START & Can Thiệp Chuyên Sâu</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Xe cấp cứu Tele-EMS 5G kích hoạt trước Cathlab STEMI / Stroke Team</li>
-                                    <li>✓ Thuật toán START Triage thảm họa hàng loạt phân 4 vùng thẻ màu</li>
-                                    <li>✓ Tim thai trung tâm CTG AI (FIGO & ACOG) cảnh báo mổ cấp cứu</li>
-                                    <li>✓ Chấm điểm phôi IVF Gardner AI & Xác thực đối chiếu RFID Witnessing</li>
-                                    <li>✓ Thang điểm cảnh báo sớm Nhi khoa PEWS & Kích hoạt MET khẩn cấp</li>
-                                    <li>✓ Can thiệp mạch vành FFR/IVUS/OCT & Đột quỵ mở rộng 6-24h DAWN/DEFUSE</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 21 (Wave 6) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-success border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-success rounded-circle p-2 text-white"><i class="bi bi-dna"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">21. Di Truyền, Biobank, Command Center & HAH</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Giải trình tự gen Somatic/Germline khớp thuốc đích FDA & NIPT cfDNA</li>
-                                    <li>✓ Ngân hàng tế bào gốc Biobank -196°C chuẩn vô trùng FACT-JACIE</li>
-                                    <li>✓ Hospital Command Center điều phối giường bệnh & Dự báo Gridlock</li>
-                                    <li>✓ Đánh giá tự động 83 Tiêu chí Chất lượng BYT 2.0 & Chuẩn JCI Quốc tế</li>
-                                    <li>✓ Tủ thuốc giải độc hiếm Orphan Antidote & Phác đồ liều đầu cấp cứu</li>
-                                    <li>✓ Hospital-at-Home (HAH Virtual Ward) giám sát từ xa phát hiện mất bù</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 22 (Wave 7) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-danger border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2 text-white"><i class="bi bi-radioactive"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">22. Ung Thư 4D, CAR-T & Hội Đồng Phân Tử MTB</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Xạ trị Linac 4D-CT & DIBH nín thở bảo vệ tim và cơ quan nguy cấp OAR</li>
-                                    <li>✓ Liệu pháp tế bào CAR-T phân độ bão Cytokine CRS (ASTCT) & Tocilizumab</li>
-                                    <li>✓ Hội đồng Ung thư Phân tử MTB đối chiếu biến thể NGS & thuốc điều trị đích</li>
-                                    <li>✓ Phẫu thuật não khi tỉnh thức Awake Craniotomy kích thích điện vỏ não</li>
-                                    <li>✓ Dược động học cá thể hóa Bayesian AUC24/MIC Vancomycin & Meropenem</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 23 (Wave 7) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-primary border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2 text-white"><i class="bi bi-lungs"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">23. Hồi Sức Sống Còn ECMO, AIIR & CRRT Citrate</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Tuần hoàn ngoài cơ thể VA/VV ECMO, chênh áp màng & hạ thân nhiệt TTM</li>
-                                    <li>✓ Buồng cách ly áp lực âm AIIR luân chuyển $\ge 12$ ACH & màng HEPA H14</li>
-                                    <li>✓ Cai máy thở SBT chỉ số thở nhanh nông RSBI & nghiệm pháp Cuff Leak Test</li>
-                                    <li>✓ Phân loại Đa chấn thương nặng ISS & kích hoạt báo động Trauma Team Level 1</li>
-                                    <li>✓ Lọc máu liên tục CVVHDF chống đông Citrate cục bộ RCA duy trì Ca2+ an toàn</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 24 (Wave 7) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-warning border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-broadcast-pin"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">24. Can Thiệp ESD/POEM & Giám Sát Từ Xa CIED</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Cắt tách niêm mạc ESD & POEM cắt trọn khối R0 triệt căn chuẩn ASGE</li>
-                                    <li>✓ Đặt stent tụy & Indomethacin dự phòng viêm tụy cấp sau can thiệp ERCP</li>
-                                    <li>✓ Giám sát thiết bị tim mạch cấy ghép CIED từ xa phát hiện Bão điện học VT/VF</li>
-                                    <li>✓ Cảnh báo sớm gãy dây điện cực Lead Fracture & cạn kiệt pin máy tạo nhịp</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 25 (Wave 7) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-info border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-info rounded-circle p-2 text-white"><i class="bi bi-shield-check"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">25. An Toàn Nhiễm Khuẩn, Radar Kháng Sinh & PHCN Robot</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Bản đồ nhạy cảm kháng sinh Antibiogram CLSI M39 phát hiện ổ dịch MDRO</li>
-                                    <li>✓ Gói can thiệp ICU ABCDEF Bundle phòng chống hội chứng suy yếu PICS</li>
-                                    <li>✓ Robot khung xương ngoài Exoskeleton phục hồi vận động thần kinh</li>
-                                    <li>✓ Thuật toán phân tích dáng đi tự thích ứng Assistance-as-Needed & GSI</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 26 (Wave 8) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-danger border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2 text-white"><i class="bi bi-heart-pulse-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">26. Hồi Sức Ngừng Tim Code Blue, ROTEM & MGPS</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Hồi sinh tim phổi nâng cao ACLS ép tim CCF $\ge 80\%$ & ROSC thành công</li>
-                                    <li>✓ Mạng lưới khí y tế trung tâm MGPS & dự báo cạn bồn oxy lỏng LOX</li>
-                                    <li>✓ Lọc máu hấp phụ ngộ độc cấp theo đồ thị Rumack-Matthew</li>
-                                    <li>✓ Phân tích đàn nhớt ROTEM/TEG chỉ huy truyền máu trúng đích và dùng TXA</li>
-                                    <li>✓ Điều phối chuyển viện rủi ro cao TRIPS & trực thăng cấp cứu bãi Helipad</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 27 (Wave 8) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-primary border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2 text-white"><i class="bi bi-tools"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">27. Bản Sao Số Tiệt Trùng CSSD & Giảm Đau PCA</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Digital Twin chuỗi vô trùng dụng cụ mổ CSSD bằng mã vạch 2D & chỉ thị bào tử</li>
-                                    <li>✓ Cấp phát khay dụng cụ vô khuẩn chính xác phòng mổ theo lịch phẫu thuật</li>
-                                    <li>✓ Bơm tiêm giảm đau PCA tự kiểm soát liều duy trì, bolus và thời gian lockout</li>
-                                    <li>✓ Tự động ngắt bơm tiêm PCA khi EtCO2 $> 50\text{ mmHg}$ hoặc tụt SpO2 ngừa suy hô hấp</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 28 (Wave 8) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-warning border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-eyedropper"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">28. Pha Hóa Trị Gravimetric, IONM & Máy LVAD</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Pha chế thuốc ung thư độc tế bào bằng cân trọng khối Gravimetric trong tủ BSC</li>
-                                    <li>✓ Giám sát thần kinh trong mổ IONM (MEP/SSEP/EMG) phẫu thuật cột sống & tủy</li>
-                                    <li>✓ Báo động biến cố tụt MEP $> 50\%$ để phẫu thuật viên nới lỏng kéo nắn kịp thời</li>
-                                    <li>✓ Phân tích 4 thông số thiết bị hỗ trợ thất trái LVAD (RPM/Flow/Power/PI) ngừa tắc bơm</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 29 (Wave 8) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-success border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-success rounded-circle p-2 text-white"><i class="bi bi-shield-lock-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">29. An Ninh Sơ Sinh RTLS, Sữa Mẹ, Hạt Nhân & GCP</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Vòng tay định vị thời gian thực RTLS cảm biến da & khóa thang máy chống bắt cóc</li>
-                                    <li>✓ Giường nệm thông minh Braden tự động nhắc xoay trở và góc nâng đầu $\le 30^\circ$</li>
-                                    <li>✓ Ngân hàng sữa mẹ thanh trùng Holder DHMB vô khuẩn cho trẻ sinh non NICU</li>
-                                    <li>✓ An toàn bức xạ y học hạt nhân PET/CT tính suy giảm hoạt độ theo chuẩn IAEA</li>
-                                    <li>✓ Quản trị thử nghiệm lâm sàng CTMS, ký e-Consent và báo cáo biến cố SAE trong 24h</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 30 (Wave 9) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-primary border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2 text-white"><i class="bi bi-tablet-landscape"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">30. Buồng Bệnh IoT 5 Sao, E-Paper & Trạm Điều Dưỡng</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Buồng bệnh nội trú thông minh IoT: ánh sáng sinh học Circadian, rèm, nhiệt độ</li>
-                                    <li>✓ Chuông gọi điều dưỡng tích hợp đánh giá điểm đau trực tiếp trên tablet đầu giường</li>
-                                    <li>✓ Điều phối động phòng khám chuyên khoa & Biển tên điện tử E-Paper đổi ca tự động</li>
-                                    <li>✓ Robot UV-C / VHP khử khuẩn buồng bệnh sau xuất viện với kiểm định ATP $\le 30$ RLU</li>
-                                    <li>✓ Buồng sinh gia đình 4-trong-1 LDRP: bàn sinh đa năng, bồn ngâm giảm đau & sưởi ấm trẻ</li>
-                                    <li>✓ Trạm điều dưỡng trung tâm hiển thị ma trận toàn khoa & trạng thái sẵn sàng Code Blue</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 31 (Wave 9) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-warning border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-shield-lock-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">31. Phòng Áp Dương Ghép Tủy PE, Phòng Chì & Dược ISO 5</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Phòng áp lực dương PE ($> +8\text{ Pa}$, HEPA H14, $\ge 12\text{ ACH}$) chống nấm phổi ghép tủy</li>
-                                    <li>✓ Phòng X-Ray/CT/MRI bọc chì $\ge 2\text{mm Pb}$ & Cảm biến chống kim loại từ tính Ferromagnetic</li>
-                                    <li>✓ Cửa khóa liên động điện từ tự ngắt phát tia X khi cửa hé mở bảo vệ an toàn thai phụ</li>
-                                    <li>✓ Nhà đại thể lạnh $+2^\circ\text{C} - 4^\circ\text{C}$ / âm sâu $-15^\circ\text{C}$, nhận diện RFID & hút khí độc Formalin</li>
-                                    <li>✓ Chu chuyển phòng nội soi & máy rửa AER tự động, kiểm tra nồng độ axit peracetic</li>
-                                    <li>✓ Phòng sạch pha chế dịch dinh dưỡng tĩnh mạch TPN & nhãn khoa chuẩn vô trùng ISO Class 5</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 32 (Wave 9) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-success border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-success rounded-circle p-2 text-white"><i class="bi bi-cpu-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">32. Tự Động Hóa Tòa Nhà, Airlock FaceID & Lounge VIP</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Phòng xử lý rác lây nhiễm Sluice: máy tiệt khuẩn bô vịt $\ge 85^\circ\text{C}$ & cân rác túi vàng</li>
-                                    <li>✓ Cửa liên động Airlock xác thực FaceID & thẻ từ bảo mật 2 lớp phòng mổ và kho thuốc độc</li>
-                                    <li>✓ Giám sát chất lượng không khí IAQ (PM2.5, CO2, TVOC) & tự động điều khiển van gió tươi HVAC</li>
-                                    <li>✓ Kho lưu trữ bệnh án giấy 20 năm: kệ compactor di động & bình chữa cháy khí sạch FM-200 25 bar</li>
-                                    <li>✓ Phòng truyền hóa chất ban ngày VIP: ghế massage ngả lưng, tablet gọi y tá & ngắt sốc tức thì</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 33 (Wave 10) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-primary border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary rounded-circle p-2 text-white"><i class="bi bi-robot"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">33. Robot AGV Vận Chuyển, Ống Khí Nén & Năng Lượng ESG</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Đội xe tự hành robot AGV/AMR vận chuyển dụng cụ phẫu thuật, thuốc ung thư, khay cơm bệnh lý</li>
-                                    <li>✓ Đường ống khí nén PTS siêu tốc 6-8 m/s cảm biến gia tốc G-force chống vỡ hồng cầu</li>
-                                    <li>✓ Lưới điện vi mô Microgrid Tier-4, chuyển mạch ATS $\le 10$s, UPS $\ge 30$p & điện mặt trời ESG</li>
-                                    <li>✓ Nghiền hấp vi sóng rác lây nhiễm tại chỗ $\ge 100^\circ\text{C}$ giảm $80\%$ thể tích biến thành rác trơ an toàn</li>
-                                    <li>✓ Nước lọc thận siêu tinh khiết RO AAMI/ISO 23500: độ dẫn $< 10\text{ }\mu\text{S/cm}$, Endotoxin $< 0.25\text{ EU/ml}$</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 34 (Wave 10) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-warning border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-warning rounded-circle p-2 text-dark"><i class="bi bi-geo-alt-fill"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">34. Định Vị BLE, CMMS IEC 62353, Barie ALPR & Bếp HACCP</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Định vị tài nguyên thiết bị y tế BLE/UWB máy thở, máy sốc điện trên bản đồ số kèm Geofence</li>
-                                    <li>✓ Quản lý kỹ thuật y sinh CMMS, đo dòng rò điện y tế IEC 62353 $< 100\text{ }\mu\text{A}$, tiếp đất $< 0.2\text{ }\Omega$</li>
-                                    <li>✓ Bãi xe ngầm Camera AI nhận diện biển số ALPR xe cấp cứu tự động mở barie luồng xanh khẩn cấp</li>
-                                    <li>✓ Bếp ăn bệnh viện dinh dưỡng điều trị chuẩn HACCP / ISO 22000: nấu tâm $\ge 75^\circ\text{C}$, lưu mẫu 24h</li>
-                                    <li>✓ Quản lý đồ vải & săng mổ gắn chip RFID giặt tiệt khuẩn chịu nhiệt $200^\circ\text{C}$ & vòng đời 100 lần</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Nhóm 35 (Wave 10) -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100 p-3 bg-white rounded-3 border-start border-danger border-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-danger rounded-circle p-2 text-white"><i class="bi bi-shield-shaded"></i></span>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">35. Chỉ Huy Thảm Họa HICS, Két Bảo Mật & Meds-to-Beds</h6>
-                                </div>
-                                <ul class="list-unstyled small text-secondary mb-0 ps-2" style="font-size: 0.8rem; line-height: 1.6;">
-                                    <li>✓ Trung tâm chỉ huy thảm họa HICS kích hoạt Code Yellow/Silver/Black, huy động 50 giường sau 15p</li>
-                                    <li>✓ Két an toàn lưu giữ tư trang bệnh nhân hôn mê vô danh bảo mật kép 2 nhân viên ký chéo</li>
-                                    <li>✓ Cung ứng mẫu sinh thiết lạnh phòng mổ Frozen Section $\le 3$p, telepathology trả kết quả $\le 20$p</li>
-                                    <li>✓ Giám sát kiệt sức ca trực Fatigue Risk Index, cảnh báo bắt buộc nghỉ ngủ bù chống sai sót phẫu thuật</li>
-                                    <li>✓ Phòng chờ xuất viện Discharge Lounge & Dịch vụ cấp phát thuốc tận giường Meds-to-Beds trước 10h</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="modal-footer bg-white px-4 py-3 d-flex justify-content-between">
-                    <div class="small text-muted">
-                        <i class="bi bi-shield-check text-success me-1"></i> Tác giả: <strong>Nguyễn Văn Hưng</strong> - Đã kiểm thử tự động 365+ kịch bản đạt 100% tỷ lệ xanh toàn diện (1,600+ assertions).
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="https://github.com/quy0358/He-Thong-Quan-Ly-Benh-Vien-Tam-Anh/pull/6" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                            <i class="bi bi-git me-1"></i> Xem Git PR #6
-                        </a>
-                        <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
+    <!-- Bootstrap 5.3.3 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar Mobile Toggle
             const toggleBtn = document.getElementById('sidebarToggleBtn');
             const sidebar = document.getElementById('adminSidebar');
-
             if (toggleBtn && sidebar) {
                 toggleBtn.addEventListener('click', function () {
                     sidebar.classList.toggle('show');
                 });
+            }
+
+            // Thanh Tìm Kiếm Nhanh Chức Năng Sidebar
+            const searchInput = document.getElementById('sidebarSearchInput');
+            const clearBtn = document.getElementById('sidebarSearchClear');
+            const groupItems = document.querySelectorAll('.sidebar-group-item');
+            const noResults = document.getElementById('sidebarNoResults');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    const query = this.value.trim().toLowerCase();
+
+                    if (query.length > 0) {
+                        if (clearBtn) clearBtn.style.display = 'block';
+                    } else {
+                        if (clearBtn) clearBtn.style.display = 'none';
+                    }
+
+                    let totalVisible = 0;
+
+                    groupItems.forEach(function (group) {
+                        const collapseEl = group.querySelector('.collapse');
+                        const navLinks = group.querySelectorAll('.nav-link');
+                        let groupHasMatch = false;
+
+                        navLinks.forEach(function (link) {
+                            const text = link.textContent.toLowerCase();
+                            if (query === '' || text.includes(query)) {
+                                link.parentElement.style.display = '';
+                                groupHasMatch = true;
+                                totalVisible++;
+                            } else {
+                                link.parentElement.style.display = 'none';
+                            }
+                        });
+
+                        if (groupHasMatch) {
+                            group.style.display = '';
+                            if (collapseEl && query !== '') {
+                                collapseEl.classList.add('show');
+                            }
+                        } else {
+                            group.style.display = 'none';
+                        }
+                    });
+
+                    // Nếu query trống thì khôi phục trạng thái ban đầu của collapse
+                    if (query === '') {
+                        groupItems.forEach(function (group) {
+                            group.style.display = '';
+                            const header = group.querySelector('.sidebar-category-header');
+                            const collapseEl = group.querySelector('.collapse');
+                            const navLinks = group.querySelectorAll('.nav-link');
+                            navLinks.forEach(function (l) { l.parentElement.style.display = ''; });
+
+                            if (header && collapseEl) {
+                                const isExpanded = header.getAttribute('aria-expanded') === 'true';
+                                if (isExpanded) {
+                                    collapseEl.classList.add('show');
+                                } else {
+                                    collapseEl.classList.remove('show');
+                                }
+                            }
+                        });
+                        if (noResults) noResults.classList.add('d-none');
+                    } else {
+                        if (noResults) {
+                            if (totalVisible === 0) {
+                                noResults.classList.remove('d-none');
+                            } else {
+                                noResults.classList.add('d-none');
+                            }
+                        }
+                    }
+                });
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', function () {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                        searchInput.focus();
+                    });
+                }
             }
         });
     </script>
