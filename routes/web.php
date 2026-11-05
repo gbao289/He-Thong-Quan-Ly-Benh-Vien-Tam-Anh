@@ -141,6 +141,9 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
 // Cổng Tra Cứu Viện Phí Điện Tử & Thanh Toán VietQR Tự Động (Public Smart Billing Lookup)
 Route::get('/billing/lookup', [PatientInvoiceController::class, 'publicLookup'])->name('public.billing.lookup');
 
+// Cổng Tìm Kiếm Toàn Diện Bệnh Viện (Universal Hospital Spotlight Search)
+Route::middleware(['auth'])->get('/universal-search', [\App\Http\Controllers\UniversalSearchController::class, 'search'])->name('universal.search');
+
 // Cổng Theo Dõi Hành Trình Khám Trực Tuyến Thời Gian Thực (Smart Patient Journey Live Tracker)
 Route::get('/journey/{code}', [PatientJourneyController::class, 'show'])->name('public.journey.show');
 

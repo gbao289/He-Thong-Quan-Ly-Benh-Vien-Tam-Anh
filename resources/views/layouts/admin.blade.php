@@ -180,6 +180,45 @@
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
         }
 
+        /* Spotlight Universal Search Styles */
+        .spotlight-result-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1.25rem;
+            text-decoration: none;
+            color: #1e293b;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .spotlight-result-item:hover, .spotlight-result-item.selected {
+            background-color: #f0f9ff;
+            color: var(--tam-primary);
+        }
+
+        .spotlight-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .spotlight-category-header {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            background-color: #f8fafc;
+            padding: 0.35rem 1.25rem;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .btn-xs {
+            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
         @media (max-width: 991.98px) {
             .sidebar {
                 position: fixed;
@@ -868,15 +907,24 @@
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Top Navbar -->
-        <header class="top-navbar d-flex align-items-center justify-content-between">
+        <header class="top-navbar d-flex align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-sm btn-outline-secondary d-lg-none" type="button" id="sidebarToggleBtn">
                     <i class="bi bi-list fs-5"></i>
                 </button>
-                <div class="fw-semibold text-muted small d-none d-sm-block">
+                <div class="fw-semibold text-muted small d-none d-xl-block">
                     HỆ THỐNG QUẢN LÝ BỆNH VIỆN ĐA KHOA TÂM ANH
                 </div>
             </div>
+
+            <!-- Spotlight Universal Search Trigger Button in Navbar -->
+            <button type="button" class="btn btn-light bg-light border d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill shadow-xs text-secondary" 
+                    id="navbarUniversalSearchBtn" data-bs-toggle="modal" data-bs-target="#universalSearchModal" 
+                    style="max-width: 360px; width: 100%; font-size: 0.82rem; cursor: pointer;">
+                <i class="bi bi-search text-primary"></i>
+                <span class="flex-grow-1 text-start text-truncate">Tìm kiếm toàn viện (Ctrl+K)...</span>
+                <span class="badge bg-white text-muted border font-monospace shadow-xs py-1" style="font-size: 0.65rem;">Ctrl K</span>
+            </button>
 
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('booking.create') }}" class="btn btn-sm btn-primary d-none d-md-inline-flex align-items-center gap-1 rounded-pill">
@@ -960,6 +1008,65 @@
                 Hệ thống Quản Trị Bệnh Viện Đa Khoa Chuẩn Doanh Nghiệp
             </div>
         </footer>
+    </div>
+
+    <!-- Universal Hospital Spotlight Search Modal -->
+    <div class="modal fade" id="universalSearchModal" tabindex="-1" aria-labelledby="universalSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 760px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem; overflow: hidden; background: #ffffff;">
+                <!-- Header with Input -->
+                <div class="p-3 border-bottom bg-white d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-primary bg-primary bg-opacity-10" style="width: 42px; height: 42px;">
+                        <i class="bi bi-search fs-5"></i>
+                    </div>
+                    <div class="flex-grow-1 position-relative">
+                        <input type="text" id="spotlightSearchInput" class="form-control form-control-lg border-0 shadow-none px-0" 
+                               placeholder="Tìm kiếm toàn viện (Tên BN, Mã BN, SĐT, Bác sĩ, Thuốc, Hóa đơn...)" 
+                               style="font-size: 1.05rem; font-weight: 500;" autocomplete="off">
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="spinner-border spinner-border-sm text-primary d-none" id="spotlightLoadingSpinner" role="status"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <!-- Category Filters -->
+                <div class="px-4 py-2 bg-light border-bottom d-flex align-items-center gap-2 overflow-x-auto text-nowrap" id="spotlightPills">
+                    <span class="text-muted small fw-semibold me-1"><i class="bi bi-funnel me-1"></i>Lọc:</span>
+                    <button type="button" class="btn btn-xs btn-primary rounded-pill spotlight-filter-btn" data-filter="all">Tất cả</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="patients">Bệnh nhân</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="doctors">Bác sĩ</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="medications">Thuốc & Dược</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="invoices">Hóa đơn</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="beds">Buồng & Giường</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="labs">Xét nghiệm</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="appointments">Lịch hẹn</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="specialties">Chuyên khoa</button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill spotlight-filter-btn" data-filter="navigation">Chức năng</button>
+                </div>
+
+                <!-- Results List -->
+                <div class="modal-body p-0" style="max-height: 480px; overflow-y: auto;" id="spotlightResultsContainer">
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-search fs-2 d-block mb-2 text-primary opacity-50"></i>
+                        <div class="fw-semibold">Gõ ít nhất 2 ký tự để tìm kiếm toàn viện</div>
+                        <small class="text-secondary">Ví dụ: <em>Lê Văn A</em>, <em>BN-2026...</em>, <em>Paracetamol</em>, <em>0912...</em>, <em>Phòng mổ</em></small>
+                    </div>
+                </div>
+
+                <!-- Footer with shortcuts -->
+                <div class="modal-footer bg-light px-4 py-2 border-top d-flex justify-content-between align-items-center small text-muted">
+                    <div class="d-flex align-items-center gap-3">
+                        <span><kbd class="bg-white text-dark border px-1.5 py-0.5 rounded shadow-xs">↑</kbd> <kbd class="bg-white text-dark border px-1.5 py-0.5 rounded shadow-xs">↓</kbd> Di chuyển</span>
+                        <span><kbd class="bg-white text-dark border px-1.5 py-0.5 rounded shadow-xs">Enter</kbd> Mở</span>
+                        <span><kbd class="bg-white text-dark border px-1.5 py-0.5 rounded shadow-xs">Esc</kbd> Đóng</span>
+                    </div>
+                    <div class="text-primary fw-medium">
+                        <i class="bi bi-hospital me-1"></i> Bệnh Viện Đa Khoa Tâm Anh
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap 5.3.3 Bundle JS -->
@@ -1106,20 +1213,184 @@
                         searchInput.focus();
                     });
                 }
+            }
 
-                // Phím tắt Ctrl+K hoặc / để focus tìm kiếm
-                document.addEventListener('keydown', function (e) {
-                    if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName))) {
-                        e.preventDefault();
-                        searchInput.focus();
-                        searchInput.select();
-                    }
-                    if (e.key === 'Escape' && document.activeElement === searchInput) {
-                        searchInput.value = '';
-                        searchInput.dispatchEvent(new Event('input'));
-                        searchInput.blur();
+            // ==========================================
+            // SPOTLIGHT UNIVERSAL SEARCH SCRIPT
+            // ==========================================
+            const spotlightModalEl = document.getElementById('universalSearchModal');
+            const spotlightInput = document.getElementById('spotlightSearchInput');
+            const spotlightSpinner = document.getElementById('spotlightLoadingSpinner');
+            const spotlightResults = document.getElementById('spotlightResultsContainer');
+            const spotlightFilterBtns = document.querySelectorAll('.spotlight-filter-btn');
+
+            let spotlightData = null;
+            let currentFilter = 'all';
+            let spotlightDebounceTimer = null;
+            let selectedIndex = -1;
+
+            if (spotlightModalEl && spotlightInput) {
+                const spotlightModal = new bootstrap.Modal(spotlightModalEl);
+
+                // Auto focus input when modal is shown
+                spotlightModalEl.addEventListener('shown.bs.modal', function () {
+                    spotlightInput.focus();
+                    spotlightInput.select();
+                    if (!spotlightData) {
+                        fetchSpotlightResults('');
                     }
                 });
+
+                // Global Shortcuts: Ctrl+K or / opens Spotlight Universal Search
+                document.addEventListener('keydown', function (e) {
+                    if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName))) {
+                        e.preventDefault();
+                        spotlightModal.show();
+                    }
+                });
+
+                // Debounced input search
+                spotlightInput.addEventListener('input', function () {
+                    clearTimeout(spotlightDebounceTimer);
+                    const query = this.value.trim();
+
+                    if (query.length < 2 && query.length > 0) {
+                        return;
+                    }
+
+                    if (spotlightSpinner) spotlightSpinner.classList.remove('d-none');
+
+                    spotlightDebounceTimer = setTimeout(function () {
+                        fetchSpotlightResults(query);
+                    }, 180);
+                });
+
+                // Filter buttons
+                spotlightFilterBtns.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        spotlightFilterBtns.forEach(b => {
+                            b.classList.remove('btn-primary');
+                            b.classList.add('btn-outline-secondary');
+                        });
+                        this.classList.remove('btn-outline-secondary');
+                        this.classList.add('btn-primary');
+
+                        currentFilter = this.getAttribute('data-filter') || 'all';
+                        renderSpotlightResults();
+                    });
+                });
+
+                // Keyboard Navigation in Results: ArrowDown, ArrowUp, Enter
+                spotlightInput.addEventListener('keydown', function (e) {
+                    const items = spotlightResults.querySelectorAll('.spotlight-result-item');
+                    if (items.length === 0) return;
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedIndex = (selectedIndex + 1) % items.length;
+                        updateSelectedItem(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                        updateSelectedItem(items);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (selectedIndex >= 0 && items[selectedIndex]) {
+                            items[selectedIndex].click();
+                        } else if (items[0]) {
+                            items[0].click();
+                        }
+                    }
+                });
+
+                function updateSelectedItem(items) {
+                    items.forEach((item, idx) => {
+                        if (idx === selectedIndex) {
+                            item.classList.add('selected');
+                            item.scrollIntoView({ block: 'nearest' });
+                        } else {
+                            item.classList.remove('selected');
+                        }
+                    });
+                }
+
+                function fetchSpotlightResults(query) {
+                    fetch(`{{ route('universal.search') }}?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (spotlightSpinner) spotlightSpinner.classList.add('d-none');
+                        spotlightData = data.results;
+                        selectedIndex = -1;
+                        renderSpotlightResults();
+                    })
+                    .catch(() => {
+                        if (spotlightSpinner) spotlightSpinner.classList.add('d-none');
+                    });
+                }
+
+                function renderSpotlightResults() {
+                    if (!spotlightData) return;
+
+                    const categories = [
+                        { key: 'patients', label: 'Bệnh Nhân & Hồ Sơ', icon: 'bi-person-vcard text-primary' },
+                        { key: 'doctors', label: 'Bác Sĩ & Nhân Sự', icon: 'bi-person-badge text-success' },
+                        { key: 'medications', label: 'Thuốc & Dược Phẩm', icon: 'bi-capsule-pill text-warning' },
+                        { key: 'invoices', label: 'Hóa Đơn & Viện Phí', icon: 'bi-receipt text-info' },
+                        { key: 'beds', label: 'Buồng Bệnh & Giường Nội Trú', icon: 'bi-hospital text-danger' },
+                        { key: 'labs', label: 'Cận Lâm Sàng & Xét Nghiệm', icon: 'bi-moisture text-primary' },
+                        { key: 'appointments', label: 'Lịch Hẹn & Tiếp Nhận', icon: 'bi-calendar-check text-info' },
+                        { key: 'specialties', label: 'Chuyên Khoa & Khoa Phòng', icon: 'bi-diagram-3 text-secondary' },
+                        { key: 'navigation', label: 'Chức Năng Hệ Thống Toàn Viện', icon: 'bi-compass text-primary' },
+                    ];
+
+                    let html = '';
+                    let totalMatches = 0;
+
+                    categories.forEach(cat => {
+                        if (currentFilter !== 'all' && currentFilter !== cat.key) return;
+
+                        const items = spotlightData[cat.key] || [];
+                        if (items.length > 0) {
+                            totalMatches += items.length;
+                            html += `<div class="spotlight-category-header d-flex justify-content-between align-items-center">
+                                <span><i class="${cat.icon} me-1.5"></i>${cat.label}</span>
+                                <span class="badge bg-secondary bg-opacity-25 text-dark" style="font-size: 0.65rem;">${items.length}</span>
+                            </div>`;
+
+                            items.forEach(item => {
+                                html += `<a href="${item.url}" class="spotlight-result-item">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-light border text-primary" style="width: 36px; height: 36px; flex-shrink: 0;">
+                                        <i class="bi ${item.icon || 'bi-circle'} fs-6"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="d-flex align-items-center justify-content-between gap-2">
+                                            <span class="fw-semibold text-truncate" style="font-size: 0.88rem;">${item.title}</span>
+                                            ${item.badge ? `<span class="badge ${item.badge_class || 'bg-light text-dark border'} rounded-pill" style="font-size: 0.65rem;">${item.badge}</span>` : ''}
+                                        </div>
+                                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${item.subtitle || ''}</div>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-muted small"></i>
+                                </a>`;
+                            });
+                        }
+                    });
+
+                    if (totalMatches === 0) {
+                        const q = spotlightInput.value.trim();
+                        html = `<div class="p-4 text-center text-muted">
+                            <i class="bi bi-emoji-neutral fs-2 d-block mb-2 text-secondary opacity-50"></i>
+                            <div class="fw-semibold">Không tìm thấy kết quả phù hợp${q ? ` cho "${q}"` : ''}</div>
+                            <small class="text-secondary">Hãy thử tìm theo từ khóa khác hoặc lọc theo danh mục</small>
+                        </div>`;
+                    }
+
+                    spotlightResults.innerHTML = html;
+                }
             }
         });
     </script>
