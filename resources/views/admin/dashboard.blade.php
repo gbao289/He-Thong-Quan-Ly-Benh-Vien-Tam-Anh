@@ -48,7 +48,6 @@
             </div>
             <div class="col-12 small text-muted">
                 Tổng số bệnh nhân là báo cáo danh sách theo ngày tạo hồ sơ; báo cáo bác sĩ gồm danh sách và lượt khám trong kỳ.
-                Do hệ thống chưa có module hóa đơn/thanh toán, chưa thể xuất doanh thu thực tế hoặc trạng thái thanh toán.
             </div>
         </form>
     </div>
