@@ -107,6 +107,11 @@
                                         <a href="{{ route('patient.appointments.show', $app) }}" class="btn btn-outline-primary" title="Xem kết quả & đơn thuốc">
                                             <i class="bi bi-eye"></i> Xem
                                         </a>
+                                        @if(in_array($app->status, ['pending', 'confirmed']))
+                                            <a href="{{ route('patient.appointments.reschedule', $app) }}" class="btn btn-outline-warning text-dark" title="Đổi ngày / ca khám">
+                                                <i class="bi bi-calendar2-range"></i> Đổi
+                                            </a>
+                                        @endif
                                         @if($app->status === 'pending')
                                             <button type="button" class="btn btn-outline-danger" title="Hủy lịch hẹn" data-bs-toggle="modal" data-bs-target="#cancelModal-{{ $app->id }}">
                                                 <i class="bi bi-x-circle"></i>

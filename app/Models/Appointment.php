@@ -40,6 +40,11 @@ class Appointment extends Model
         'triaged_at',
         'called_at',
         'counter_number',
+        'waitlist_position',
+        'waitlisted_at',
+        'promoted_at',
+        'rescheduled_at',
+        'rescheduled_from_code',
     ];
 
     protected function casts(): array
@@ -48,6 +53,9 @@ class Appointment extends Model
             'appointment_date' => 'date',
             'esi_level' => 'integer',
             'esi_criteria' => 'array',
+            'waitlisted_at' => 'datetime',
+            'promoted_at' => 'datetime',
+            'rescheduled_at' => 'datetime',
             'triaged_at' => 'datetime',
             'called_at' => 'datetime',
         ];

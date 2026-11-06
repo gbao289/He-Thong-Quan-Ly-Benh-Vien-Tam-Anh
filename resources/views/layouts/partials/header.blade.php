@@ -22,6 +22,21 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->is('about*') ? 'active fw-semibold text-primary' : '' }}" href="{{ route('about') }}">
+                        <i class="bi bi-info-circle me-1"></i> Giới thiệu
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('doctors') || (request()->is('doctors/*') && !request()->is('doctors/symptom-checker*')) ? 'active fw-semibold text-primary' : '' }}" href="{{ route('public.doctors.index') }}">
+                        <i class="bi bi-people me-1"></i> Đội ngũ Bác sĩ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('doctors/symptom-checker*') ? 'active fw-semibold text-primary' : '' }}" href="{{ route('public.doctors.symptom_checker') }}">
+                        <i class="bi bi-robot text-primary me-1"></i> Trợ lý Triệu chứng <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size: 0.65rem;">AI</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->is('booking') ? 'active fw-semibold text-primary' : '' }}" href="{{ route('booking.create') }}">
                         <i class="bi bi-calendar-plus me-1"></i> Đặt lịch khám
                     </a>
@@ -77,7 +92,22 @@
                                         <i class="bi bi-journal-medical text-success me-2"></i> Lịch sử khám của tôi
                                     </a>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ route('patient.family.index') }}">
+                                        <i class="bi bi-people text-info me-2"></i> Hồ sơ người thân & gia đình
+                                    </a>
+                                </li>
                             @endif
+                            <li>
+                                <a class="dropdown-item py-2" href="{{ route('two-factor.setup') }}">
+                                    <i class="bi bi-shield-check text-primary me-2"></i> Bảo mật 2 lớp (2FA)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" href="{{ route('sessions.index') }}">
+                                    <i class="bi bi-display text-secondary me-2"></i> Phiên đăng nhập & Thiết bị
+                                </a>
+                            </li>
                             <li>
                                 <a class="dropdown-item py-2" href="{{ route('profile.password') }}">
                                     <i class="bi bi-shield-lock text-warning me-2"></i> Đổi mật khẩu

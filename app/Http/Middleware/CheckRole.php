@@ -35,6 +35,18 @@ class CheckRole
             return $next($request);
         }
 
+        // Audit Trail: Record security anomaly on unauthorized role boundary traversal
+        try {
+            \App\Services\SecurityAuditService::log(
+                'unauthorized_access_attempt',
+                "Người dùng {$user->email} ({$user->role}) bị chặn khi truy cập URL yêu cầu quyền [" . implode(',', $allowedRoles) . "]: {$request->path()}",
+                $user->id,
+                'warning'
+            );
+        } catch (\Throwable $e) {
+            // Fail open for logging, do not break abort flow
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => false,

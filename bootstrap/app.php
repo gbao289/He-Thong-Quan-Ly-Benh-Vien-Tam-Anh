@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'booking.spam' => \App\Http\Middleware\BookingSpamProtection::class,
+            'booking.maintenance' => \App\Http\Middleware\CheckBookingMaintenance::class,
         ]);
 
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);

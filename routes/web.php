@@ -2,13 +2,24 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\DoctorManagementController;
+use App\Http\Controllers\Admin\DoctorRosterController;
+use App\Http\Controllers\Admin\ReportExportController;
 use App\Http\Controllers\Admin\SpecialtyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SecurityAuditController;
+use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\SystemHealthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\Auth\DeviceSessionController;
+use App\Http\Controllers\Patient\FamilyMemberController;
+use App\Http\Controllers\Public\CalendarExportController;
 use App\Http\Controllers\Doctor\ClinicalConsultationController;
 use App\Http\Controllers\Doctor\DoctorConsultationController;
 use App\Http\Controllers\Doctor\DoctorQueueController;
+use App\Http\Controllers\Doctor\MedicalRecordController;
+use App\Http\Controllers\Medical\AttachmentController;
 use App\Http\Controllers\Patient\PatientPortalController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\DeliveryTrackingController;
@@ -97,8 +108,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Trang chủ công khai (Landing Page)
+// Trang chủ công khai (Landing Page) & Giới thiệu
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
 
 // =========================================================================
 // ====== MODULE 1: AUTH & BOOKING (Phụ trách: NGUYỄN THÀNH QUÝ) ===========
@@ -108,20 +120,32 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('throttle:10,1');
+    Route::get('/two-factor/challenge', [TwoFactorController::class, 'showChallenge'])->name('two-factor.challenge');
+    Route::post('/two-factor/challenge', [TwoFactorController::class, 'verifyChallenge'])->name('two-factor.verify');
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+    // 2FA Management
+    Route::get('/two-factor/setup', [TwoFactorController::class, 'showSetup'])->name('two-factor.setup');
+    Route::post('/two-factor/confirm', [TwoFactorController::class, 'confirm'])->name('two-factor.confirm');
+    Route::delete('/two-factor/disable', [TwoFactorController::class, 'disable'])->name('two-factor.disable');
+
+    // Active Sessions & Remote Device Logout
+    Route::get('/account/sessions', [DeviceSessionController::class, 'index'])->name('sessions.index');
+    Route::post('/account/sessions/logout-others', [DeviceSessionController::class, 'logoutOtherDevices'])->name('sessions.logout-others');
 });
 
 // 1.2. Booking Engine (Đặt lịch khám bệnh trực tuyến)
 Route::prefix('booking')->group(function () {
-    Route::get('/', [BookingController::class, 'create'])->name('booking.create');
-    Route::post('/', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/', [BookingController::class, 'create'])->name('booking.create')->middleware('booking.maintenance');
+    Route::post('/', [BookingController::class, 'store'])->name('booking.store')->middleware(['booking.maintenance', 'booking.spam']);
     Route::get('/success/{code}', [BookingController::class, 'success'])->name('booking.success');
     Route::get('/lookup', [BookingController::class, 'lookup'])->name('booking.lookup')->middleware('throttle:30,1');
+    Route::get('/calendar/{code}.ics', [CalendarExportController::class, 'downloadIcs'])->name('calendar.ics');
 
     // AJAX API routes for dynamic dropdown and overbooking slot checking
     Route::get('/doctors-by-specialty/{specialtyId}', [BookingController::class, 'getDoctorsBySpecialty'])->name('booking.doctors_by_specialty');
@@ -163,11 +187,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // 1.4. Patient Portal (Lịch sử khám & Kết quả của Bệnh nhân)
 Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
     Route::get('/history', [PatientPortalController::class, 'history'])->name('history');
-    Route::get('/appointments/{appointment}', [PatientPortalController::class, 'showAppointment'])->name('appointments.show');
     Route::get('/appointments/{appointment}/prescription/print', [PatientPortalController::class, 'printPrescription'])->name('appointments.prescription.print');
     Route::get('/certificates/{certificate}/print', [SickLeaveCertificateController::class, 'print'])->name('certificates.print');
     Route::put('/appointments/{appointment}/cancel', [PatientPortalController::class, 'cancelAppointment'])->name('appointments.cancel');
+
+    // Self-service appointment reschedule
+    Route::get('/appointments/{appointment}/reschedule', [PatientPortalController::class, 'showReschedule'])->name('appointments.reschedule');
+    Route::post('/appointments/{appointment}/reschedule', [PatientPortalController::class, 'processReschedule'])->name('appointments.reschedule.process');
+
+    // Family Member Management
+    Route::get('/family-members', [FamilyMemberController::class, 'index'])->name('family.index');
+    Route::post('/family-members', [FamilyMemberController::class, 'store'])->name('family.store');
+    Route::delete('/family-members/{familyMember}', [FamilyMemberController::class, 'destroy'])->name('family.destroy');
 });
+
+Route::get('/patient/appointments/{appointment}', [PatientPortalController::class, 'showAppointment'])
+    ->middleware(['auth', 'role:patient,admin'])
+    ->name('patient.appointments.show');
 
 
 // =========================================================================
@@ -175,21 +211,39 @@ Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')
 // =========================================================================
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/reports/export', [ReportExportController::class, 'export'])->name('reports.export');
 
     // Quản lý Chuyên khoa (CRUD & toggle status)
     Route::patch('/specialties/{specialty}/toggle-status', [SpecialtyController::class, 'toggleStatus'])->name('specialties.toggle-status');
     Route::resource('specialties', SpecialtyController::class);
 
-    // Quản lý Bác sĩ & Lịch trực tuần
+    // Quản lý Bác sĩ & Lịch trực tuần & Nghỉ phép
+    Route::get('/roster', [DoctorRosterController::class, 'index'])->name('roster');
     Route::get('/doctors/{doctor}/schedule', [DoctorManagementController::class, 'schedule'])->name('doctors.schedule');
     Route::put('/doctors/{doctor}/schedule', [DoctorManagementController::class, 'updateSchedule'])->name('doctors.schedule.update');
+    Route::get('/doctors/{doctor}/leaves', [DoctorManagementController::class, 'leaves'])->name('doctors.leaves');
+    Route::post('/doctors/{doctor}/leaves', [DoctorManagementController::class, 'storeLeave'])->name('doctors.leaves.store');
+    Route::delete('/doctors/leaves/{leave}', [DoctorManagementController::class, 'destroyLeave'])->name('doctors.leaves.destroy');
     Route::patch('/doctors/{doctor}/toggle-availability', [DoctorManagementController::class, 'toggleAvailability'])->name('doctors.toggle-availability');
     Route::resource('doctors', DoctorManagementController::class);
+
+    // Technical Lead Innovation: Security Audit Trail, System Settings & Infrastructure Health
+    Route::get('/security-audit', [SecurityAuditController::class, 'index'])->name('security-audit.index');
+    Route::get('/security-audit/export', [SecurityAuditController::class, 'export'])->name('security-audit.export');
+    Route::get('/settings', [SystemSettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SystemSettingController::class, 'update'])->name('settings.update');
+    Route::get('/system-health', [SystemHealthController::class, 'index'])->name('system-health.index');
+    Route::post('/system-health/ping-mail', [SystemHealthController::class, 'pingMail'])->name('system-health.ping-mail');
 });
 
-// Cổng thông tin công chúng: Danh bạ Bác sĩ
+// Cổng thông tin công chúng: Danh bạ Bác sĩ & Trợ lý Triệu chứng
 Route::prefix('doctors')->name('public.doctors.')->group(function () {
     Route::get('/', [DoctorPublicController::class, 'index'])->name('index');
+    Route::get('/symptom-checker', [DoctorPublicController::class, 'symptomChecker'])->name('symptom_checker');
+    Route::post('/symptom-match', [DoctorPublicController::class, 'matchSymptoms'])->name('symptom_match');
+    Route::get('/{doctor}/vcard', [DoctorPublicController::class, 'downloadVcard'])->name('vcard');
+    Route::get('/{doctor}/desk-card', [DoctorPublicController::class, 'deskCard'])->name('desk_card');
+    Route::get('/{doctor}/print', [DoctorPublicController::class, 'printProfile'])->name('print');
     Route::get('/{doctor}', [DoctorPublicController::class, 'show'])->name('show');
 });
 
@@ -720,17 +774,31 @@ Route::get('/or-waiting-board', [OperatingRoomSuiteController::class, 'publicWai
 // =========================================================================
 // ====== MODULE 4: EXAMINATION & RECORDS (Phụ trách: VÕ LÊ GIA BẢO) =======
 // =========================================================================
+// =========================================================================
+// ====== MODULE 4: EXAMINATION & RECORDS (Phụ trách: VÕ LÊ GIA BẢO) =======
+// =========================================================================
 // Hàng đợi phòng khám của Bác sĩ & Khám bệnh
 Route::middleware(['auth', 'role:doctor,admin'])->prefix('doctor')->name('doctor.')->group(function () {
     Route::get('/queue', [DoctorQueueController::class, 'index'])->name('queue');
     Route::get('/examine/{appointment}', [DoctorConsultationController::class, 'examine'])->name('examine');
     Route::post('/examine/{appointment}', [DoctorConsultationController::class, 'store'])->name('examine.store');
+    Route::post('/examine', [MedicalRecordController::class, 'store'])->name('records.store');
     Route::get('/records/{record}', [DoctorConsultationController::class, 'showRecord'])->name('records.show');
     Route::get('/records/{record}/certificate', [SickLeaveCertificateController::class, 'create'])->name('records.certificate.create');
     Route::post('/records/{record}/certificate', [SickLeaveCertificateController::class, 'store'])->name('records.certificate.store');
     Route::post('/records/{record}/attachments', [DoctorConsultationController::class, 'uploadAttachment'])->name('records.attachments.upload');
     Route::delete('/records/{record}/attachments/{attachment}', [DoctorConsultationController::class, 'destroyAttachment'])->name('records.attachments.destroy');
     Route::get('/records/{record}/print', [DoctorConsultationController::class, 'printPrescription'])->name('records.print');
+});
+
+// Nghiệp vụ Tệp y tế: Upload (Bác sĩ, Admin) & Download an toàn (Policy check cho Bệnh nhân, Bác sĩ, Admin)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/medical-records/{record}/attachments', [AttachmentController::class, 'upload'])
+        ->name('records.attachments.upload')
+        ->middleware('role:doctor,admin');
+
+    Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])
+        ->name('attachments.download');
 });
 
 // =========================================================================

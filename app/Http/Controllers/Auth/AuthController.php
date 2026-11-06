@@ -56,11 +56,35 @@ class AuthController extends Controller
                     ]);
             }
 
+            // Check if 2FA is enabled and confirmed for this user
+            if ($user->two_factor_secret && $user->two_factor_confirmed_at) {
+                Auth::logout();
+                $request->session()->put('login.2fa.user_id', $user->id);
+                $request->session()->put('login.2fa.remember', $remember);
+
+                return redirect()->route('two-factor.challenge')
+                    ->with('info', 'Tài khoản đã kích hoạt bảo mật 2 lớp. Vui lòng nhập mã TOTP từ ứng dụng xác thực.');
+            }
+
+            \App\Services\SecurityAuditService::log(
+                'login_success',
+                "Đăng nhập thành công tài khoản {$user->email} (vai trò {$user->role})",
+                $user->id,
+                'info'
+            );
+
             $request->session()->regenerate();
 
             return $this->redirectBasedOnRole($user)
                 ->with('success', "Xin chào {$user->name}! Bạn đã đăng nhập thành công với vai trò {$user->role_name}.");
         }
+
+        \App\Services\SecurityAuditService::log(
+            'login_failed',
+            "Đăng nhập thất bại cho email: {$credentials['email']}",
+            null,
+            'warning'
+        );
 
         return back()
             ->withInput($request->only('email', 'remember'))

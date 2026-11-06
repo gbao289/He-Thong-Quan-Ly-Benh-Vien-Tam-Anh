@@ -15,6 +15,21 @@
             </div>
 
             <div class="card-body p-4 p-md-5">
+                @if($appointment->status === 'waitlist')
+                    <div class="alert alert-warning border-start border-4 border-warning mb-4 p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-hourglass-split fs-2 text-warning"></i>
+                            <div>
+                                <h5 class="fw-bold mb-1">QUÝ KHÁCH ĐANG Ở DANH SÁCH CHỜ (WAITLIST)</h5>
+                                <div class="mb-0">
+                                    Vị trí thứ tự chờ của Quý khách: <strong class="badge bg-warning text-dark fs-6">#{{ $appointment->waitlist_position }}</strong>.
+                                    Khi có bệnh nhân khác hủy lịch hoặc chuyển ca, hệ thống thông minh sẽ tự động ưu tiên xếp chỗ và gửi email thông báo cho Quý khách.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Appointment Code Highlight Box -->
                 <div class="p-3 bg-light border border-2 border-primary rounded-3 text-center mb-4">
                     <span class="text-muted small text-uppercase fw-semibold d-block">Mã tra cứu lịch hẹn của Quý khách</span>
@@ -24,9 +39,19 @@
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </div>
-                    <small class="text-danger">
+                    <small class="text-danger d-block mb-3">
                         <i class="bi bi-exclamation-circle-fill me-1"></i> Quý khách vui lòng chụp lại màn hình hoặc ghi nhớ mã số này để làm thủ tục tiếp nhận tại quầy.
                     </small>
+
+                    <!-- Calendar Sync Quick Actions -->
+                    <div class="d-flex flex-wrap justify-content-center gap-2 pt-2 border-top">
+                        <a href="{{ $googleCalendarUrl ?? '#' }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-google me-1"></i> Thêm vào Google Calendar
+                        </a>
+                        <a href="{{ $icsDownloadUrl ?? route('calendar.ics', $appointment->appointment_code) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-calendar-plus me-1"></i> Tải file Lịch (.ics cho iPhone/Outlook)
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Summary Info Table -->

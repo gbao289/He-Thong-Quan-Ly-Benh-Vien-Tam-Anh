@@ -265,7 +265,7 @@ class ReceptionPatientTest extends TestCase
     {
         $receptionist = $this->getReceptionist();
         $specialty = Specialty::where('is_active', true)->first();
-        $doctor = Doctor::where('specialty_id', $specialty->id)->first();
+        $doctor = Doctor::where('specialty_id', $specialty->id)->where('is_available', true)->first();
         $uniquePhone = '097' . rand(1000000, 9999999);
         $testDate = Carbon::tomorrow()->addDays(rand(400, 600))->toDateString();
 

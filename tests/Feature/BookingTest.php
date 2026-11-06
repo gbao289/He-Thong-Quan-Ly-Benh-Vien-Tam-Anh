@@ -12,6 +12,12 @@ use Tests\TestCase;
 
 class BookingTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Doctor::where('is_available', false)->update(['is_available' => true]);
+    }
+
     public function test_booking_page_renders_successfully(): void
     {
         $response = $this->get('/booking');

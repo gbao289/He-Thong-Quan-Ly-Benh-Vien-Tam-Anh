@@ -30,6 +30,10 @@
                 <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
                     @csrf
 
+                    <!-- Anti-spam Honeypot and Velocity Protection -->
+                    <input type="text" name="website_verification_code" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true">
+                    <input type="hidden" name="_form_load_time" value="{{ time() }}">
+
                     <!-- BƯỚC 1: CHUYÊN KHOA VÀ BÁC SĨ -->
                     <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.85rem;">1</div>
@@ -103,6 +107,25 @@
                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.85rem;">2</div>
                         <h5 class="fw-bold mb-0 text-primary">Thông tin Bệnh nhân</h5>
                     </div>
+
+                    @if(isset($familyMembers) && $familyMembers->isNotEmpty())
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <label class="form-label fw-bold text-primary small mb-1"><i class="bi bi-people me-1"></i>Đặt lịch cho thành viên gia đình đã lưu:</label>
+                            <select class="form-select form-select-sm" id="familyMemberSelect" onchange="applyFamilyMember(this);">
+                                <option value="">-- Đặt cho bản thân ({{ $patientProfile->full_name ?? Auth::user()->name }}) --</option>
+                                @foreach($familyMembers as $fm)
+                                    <option value="{{ $fm->id }}" 
+                                        data-name="{{ $fm->full_name }}" 
+                                        data-dob="{{ $fm->date_of_birth->format('Y-m-d') }}" 
+                                        data-gender="{{ $fm->gender }}"
+                                        data-phone="{{ $fm->phone ?? '' }}"
+                                        data-notes="{{ $fm->medical_notes ?? '' }}">
+                                        {{ $fm->full_name }} ({{ $fm->relationship_label }} - {{ $fm->age }} tuổi)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
@@ -182,6 +205,14 @@
                         @error('symptom_description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    <div class="form-check mb-3 p-3 bg-light rounded border">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" name="join_waitlist" value="1" id="joinWaitlistCheck" checked>
+                        <label class="form-check-label fw-semibold" for="joinWaitlistCheck">
+                            Tự động tham gia Hàng Đợi Chờ (Smart Waitlist) nếu ca khám của bác sĩ đã nhận đủ số lượng
+                        </label>
+                        <div class="small text-muted mt-1">Hệ thống sẽ giữ vị trí ưu tiên và tự động xác nhận lịch khám khi có bệnh nhân khác dời hoặc hủy ca.</div>
                     </div>
 
                     <!-- Cam kết & Nút Submit -->

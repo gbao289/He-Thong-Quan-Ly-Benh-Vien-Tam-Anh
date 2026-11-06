@@ -295,6 +295,21 @@
                             </ul>
                         </div>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/security-audit*') ? 'active' : '' }}" href="{{ route('admin.security-audit.index') }}">
+                            <i class="bi bi-shield-lock"></i> Nhật Ký Kiểm Toán Bảo Mật
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/settings*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
+                            <i class="bi bi-gear-wide-connected"></i> Cấu Hình Hệ Thống
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/system-health*') ? 'active' : '' }}" href="{{ route('admin.system-health.index') }}">
+                            <i class="bi bi-heart-pulse"></i> Giám Sát Sức Khỏe Hạ Tầng
+                        </a>
+                    </li>
                 @endif
 
                 {{-- 2. TIẾP ĐÓN & SẢNH CHỜ --}}

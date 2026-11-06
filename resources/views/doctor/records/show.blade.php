@@ -2,28 +2,275 @@
 
 @section('title', 'Chi Tiết Bệnh Án - ' . $record->record_code . ' - BV Tâm Anh')
 
-@section('content')
-<x-page-header title="Hồ Sơ Bệnh Án Ngoại Trú" subtitle="Mã bệnh án: {{ $record->record_code }} &bull; Đã hoàn tất khám và lưu trữ an toàn">
-    <x-slot:actions>
-        <a href="{{ route('doctor.records.print', $record) }}" target="_blank" class="btn btn-outline-dark d-inline-flex align-items-center gap-1 shadow-sm">
-            <i class="bi bi-printer-fill"></i> In đơn thuốc (A4/A5)
-        </a>
-        <a href="{{ route('reception.certificates.create', $record) }}" class="btn btn-outline-info d-inline-flex align-items-center gap-1 shadow-sm">
-            <i class="bi bi-file-earmark-medical"></i> Cấp giấy nghỉ BHXH (C65-HD)
-        </a>
-        <a href="{{ route('doctor.examine', $record->appointment) }}" class="btn btn-outline-warning d-inline-flex align-items-center gap-1">
-            <i class="bi bi-pencil-square"></i> Chỉnh sửa bệnh án
-        </a>
-        <a href="{{ route('doctor.queue') }}" class="btn btn-primary d-inline-flex align-items-center gap-1">
-            <i class="bi bi-arrow-left"></i> Về danh sách chờ
-        </a>
-    </x-slot:actions>
-</x-page-header>
+@push('styles')
+    <style>
+        @media print {
+            @page {
+                margin: 15mm;
+            }
 
-<div class="row g-4 mb-5">
-    <!-- Left Column: Patient Summary -->
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0 mb-4">
+            body {
+                display: block !important;
+                background: #fff !important;
+            }
+
+            .sidebar,
+            .top-navbar,
+            footer,
+            .no-print,
+            .main-content > main > .alert {
+                display: none !important;
+            }
+
+            .main-content,
+            .main-content > main {
+                display: block !important;
+                width: 100% !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .main-content > main > .row {
+                display: block !important;
+                margin: 0 !important;
+            }
+
+            .printable-column {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: 0 0 100% !important;
+                padding: 0 !important;
+            }
+
+            .printable-card {
+                width: 100% !important;
+                margin: 0 !important;
+                border: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .printable-card tr {
+                break-inside: avoid;
+            }
+        }
+    </style>
+@endpush
+
+@section('content')
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 no-print">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                @if(Auth::user()->isDoctor() || Auth::user()->isAdmin())
+                    <li class="breadcrumb-item"><a href="{{ route('doctor.queue') }}" class="text-decoration-none">Hàng đợi khám</a></li>
+                @else
+                    <li class="breadcrumb-item"><a href="{{ route('patient.history') }}" class="text-decoration-none">Lịch sử khám bệnh</a></li>
+                @endif
+                <li class="breadcrumb-item active" aria-current="page">Chi tiết bệnh án</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold text-dark mb-0">
+            <i class="bi bi-file-earmark-medical text-primary me-2"></i>Hồ Sơ Bệnh Án & Đơn Thuốc
+        </h3>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-1" onclick="window.print()">
+            <i class="bi bi-printer"></i> In bệnh án / đơn thuốc
+        </button>
+        @if(Auth::user()->isDoctor() || Auth::user()->isAdmin())
+            <a href="{{ route('doctor.queue') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại ca trực
+            </a>
+        @endif
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Cột trái: Thông tin chính Bệnh án & Đơn thuốc -->
+    <div class="col-lg-8 printable-column">
+        <!-- Khối phiếu khám bệnh viện -->
+        <div class="card shadow-sm border-0 mb-4 bg-white printable-card">
+            <!-- Header chuẩn bệnh viện Tâm Anh -->
+            <div class="card-header bg-white p-4 border-bottom">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fs-2" style="width: 50px; height: 50px;">
+                                <i class="bi bi-hospital"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-primary mb-0 text-uppercase">Bệnh Viện Đa Khoa Tâm Anh</h5>
+                                <small class="text-muted">Hệ thống Khám chữa bệnh Ngoại trú Chất lượng cao</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                        <div class="small text-muted">Mã số hồ sơ bệnh án:</div>
+                        <h4 class="fw-bold font-monospace text-dark mb-0">{{ $record->record_code }}</h4>
+                        <small class="text-muted">Ngày khám: {{ $record->created_at->format('d/m/Y - H:i') }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Thông tin hành chính -->
+                <div class="bg-light p-3 rounded-3 mb-4 border">
+                    <h6 class="fw-bold text-dark text-uppercase small mb-3 border-bottom pb-2">
+                        <i class="bi bi-person-lines-fill text-primary me-2"></i>I. Thông Tin Hành Chính Bệnh Nhân
+                    </h6>
+                    <div class="row g-2 small">
+                        <div class="col-md-6">
+                            <span class="text-muted">Họ và tên:</span>
+                            <strong class="text-dark fs-6">{{ $record->patientProfile->full_name }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-muted">Mã bệnh nhân:</span>
+                            <strong class="text-primary font-monospace">{{ $record->patientProfile->patient_code }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-muted">Giới tính:</span>
+                            <strong class="text-dark">{{ $record->patientProfile->gender_name }}</strong>
+                        </div>
+
+                        <div class="col-md-6">
+                            <span class="text-muted">Ngày sinh / Tuổi:</span>
+                            <strong class="text-dark">
+                                {{ $record->patientProfile->dob ? $record->patientProfile->dob->format('d/m/Y') . ' (' . $record->patientProfile->dob->age . ' tuổi)' : '—' }}
+                            </strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-muted">Số điện thoại:</span>
+                            <strong class="text-dark">{{ $record->patientProfile->phone }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-muted">Số BHYT:</span>
+                            <span class="text-dark">{{ $record->patientProfile->insurance_code ?? 'Khám dịch vụ' }}</span>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <span class="text-muted">Địa chỉ:</span>
+                            <span class="text-dark">{{ $record->patientProfile->address ?? 'Chưa ghi nhận' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kết quả khám & chẩn đoán -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small mb-3 border-bottom pb-2">
+                        <i class="bi bi-clipboard2-pulse text-primary me-2"></i>II. Kết Quả Khám & Chẩn Đoán Xác Định
+                    </h6>
+
+                    <div class="mb-3">
+                        <div class="small text-muted fw-bold mb-1">Triệu chứng lâm sàng khi tiếp nhận:</div>
+                        <div class="p-3 bg-light rounded border text-dark">
+                            {{ $record->symptoms }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="small text-muted fw-bold mb-1">Chẩn đoán xác định của Bác sĩ:</div>
+                        <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded text-danger fw-bold fs-5">
+                            <i class="bi bi-bookmark-check-fill me-2"></i>{{ $record->diagnosis }}
+                        </div>
+                    </div>
+
+                    @if($record->clinical_notes)
+                        <div class="mb-3">
+                            <div class="small text-muted fw-bold mb-1">Chỉ số sinh tồn & Ghi chú cận lâm sàng:</div>
+                            <div class="p-3 bg-light rounded border text-dark">
+                                {{ $record->clinical_notes }}
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($record->treatment_plan)
+                        <div class="mb-3">
+                            <div class="small text-muted fw-bold mb-1">Kế hoạch điều trị & Lời dặn Bác sĩ:</div>
+                            <div class="p-3 bg-light rounded border text-dark">
+                                {{ $record->treatment_plan }}
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($record->follow_up_date)
+                        <div class="alert alert-info border-0 d-flex align-items-center gap-2 mb-0">
+                            <i class="bi bi-calendar-event fs-4 text-info"></i>
+                            <div>
+                                <strong>Hẹn lịch tái khám:</strong> Ngày
+                                <span class="badge bg-primary fs-6">{{ $record->follow_up_date->format('d/m/Y') }}</span>
+                                (Bệnh nhân vui lòng mang theo đơn thuốc và hồ sơ bệnh án này khi đi tái khám).
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Đơn thuốc chi tiết -->
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold text-dark text-uppercase small mb-0">
+                            <i class="bi bi-capsule-pill text-primary me-2"></i>III. Đơn Thuốc Ngoại Trú (Rx)
+                        </h6>
+                        <span class="badge bg-secondary">{{ $record->prescriptions->count() }} loại thuốc</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light small text-center">
+                                <tr>
+                                    <th style="width: 45px;">STT</th>
+                                    <th>Tên thuốc & Hàm lượng</th>
+                                    <th>Liều dùng</th>
+                                    <th>Tần suất</th>
+                                    <th>Số ngày</th>
+                                    <th>Cách dùng / Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($record->prescriptions as $idx => $rx)
+                                    <tr>
+                                        <td class="text-center fw-bold text-muted">{{ $idx + 1 }}</td>
+                                        <td>
+                                            <strong class="text-dark">{{ $rx->medication_name }}</strong>
+                                        </td>
+                                        <td class="text-center">{{ $rx->dosage }}</td>
+                                        <td>{{ $rx->frequency }}</td>
+                                        <td class="text-center fw-bold text-primary">{{ $rx->duration_days }} ngày</td>
+                                        <td class="small">{{ $rx->instructions ?? 'Theo chỉ định' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center py-3 text-muted">
+                                            Không có chỉ định kê đơn thuốc trong ca khám này.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chữ ký bác sĩ -->
+                <div class="row mt-5 pt-3">
+                    <div class="col-6 text-center">
+                        <div class="small text-muted mb-5">BỆNH NHÂN / NGƯỜI ĐẠI DIỆN</div>
+                        <div class="fw-bold text-dark">{{ $record->patientProfile->full_name }}</div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="small text-muted mb-1">Ngày {{ $record->created_at->format('d') }} tháng {{ $record->created_at->format('m') }} năm {{ $record->created_at->format('Y') }}</div>
+                        <div class="small text-muted mb-5 fw-bold">BÁC SĨ ĐIỀU TRỊ</div>
+                        <div class="fw-bold text-primary">{{ $record->doctor->full_name_with_title }}</div>
+                        <small class="text-muted">{{ $record->appointment->specialty->name ?? '' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Quản lý File y tế đính kèm & Thao tác -->
+    <div class="col-lg-4 no-print">
+        <!-- Thông tin ca khám -->
+        <div class="card shadow-sm border-0 mb-4 bg-white">
             <div class="card-header bg-white py-3 border-bottom">
                 <h6 class="fw-bold text-primary mb-0">
                     <i class="bi bi-person-bounding-box me-1"></i> Thông Tin Bệnh Nhân
@@ -244,8 +491,8 @@
                                         </div>
 
                                         <div class="pt-2 mt-2 border-top d-flex justify-content-between align-items-center">
-                                            <a href="{{ $att->url }}" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Mở tệp">
-                                                <i class="bi bi-box-arrow-up-right"></i> Mở
+                                            <a href="{{ route('attachments.download', $att) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Tải xuống tệp an toàn">
+                                                <i class="bi bi-download"></i> Tải về
                                             </a>
                                             <form action="{{ route('doctor.records.attachments.destroy', [$record, $att]) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tệp cận lâm sàng này khỏi bệnh án?');">
                                                 @csrf
@@ -265,42 +512,4 @@
         </div>
     </div>
 </div>
-
-<!-- Modal Lightbox Preview -->
-<div class="modal fade" id="imageLightboxModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content bg-dark border-0">
-            <div class="modal-header border-bottom border-secondary py-2">
-                <h6 class="modal-title text-white small text-truncate" id="lightboxTitle">Xem Hình Ảnh Cận Lâm Sàng</h6>
-                <div class="d-flex align-items-center gap-2">
-                    <a href="#" id="lightboxDownloadBtn" target="_blank" download class="btn btn-sm btn-outline-light py-1 px-2">
-                        <i class="bi bi-download"></i> Tải về
-                    </a>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-            </div>
-            <div class="modal-body p-2 text-center bg-black">
-                <img src="" id="lightboxImage" class="img-fluid rounded" style="max-height: 80vh; object-fit: contain;" alt="Xem hình ảnh">
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-    function openLightbox(url, title) {
-        const modalEl = document.getElementById('imageLightboxModal');
-        const imgEl = document.getElementById('lightboxImage');
-        const titleEl = document.getElementById('lightboxTitle');
-        const downloadBtn = document.getElementById('lightboxDownloadBtn');
-
-        imgEl.src = url;
-        titleEl.textContent = title;
-        downloadBtn.href = url;
-
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-</script>
-@endpush
 @endsection

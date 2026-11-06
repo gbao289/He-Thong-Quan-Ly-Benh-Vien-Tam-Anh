@@ -5,11 +5,70 @@
 @section('content')
 <x-page-header title="Quản lý Bác sĩ" subtitle="Danh sách đội ngũ bác sĩ, chuyên khoa phân công và lịch khám bệnh">
     <x-slot:actions>
+        <a href="{{ route('admin.roster') }}" class="btn btn-outline-info d-inline-flex align-items-center gap-1">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Ma trận ca trực tuần
+        </a>
         <a href="{{ route('admin.doctors.create') }}" class="btn btn-primary d-inline-flex align-items-center gap-1">
             <i class="bi bi-person-plus-fill"></i> Thêm bác sĩ mới
         </a>
     </x-slot:actions>
 </x-page-header>
+
+<!-- Quick Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center fs-4" style="width: 50px; height: 50px;">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small">Tổng số Bác sĩ</span>
+                    <h4 class="fw-bold text-dark mb-0">{{ $stats['total'] }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center fs-4" style="width: 50px; height: 50px;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small">Sẵn sàng nhận khám</span>
+                    <h4 class="fw-bold text-success mb-0">{{ $stats['available'] }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-inline-flex align-items-center justify-content-center fs-4" style="width: 50px; height: 50px;">
+                    <i class="bi bi-slash-circle-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small">Tạm dừng nhận khám</span>
+                    <h4 class="fw-bold text-warning mb-0">{{ $stats['unavailable'] }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-info bg-opacity-10 text-info d-inline-flex align-items-center justify-content-center fs-4" style="width: 50px; height: 50px;">
+                    <i class="bi bi-door-open-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small">Phòng khám vận hành</span>
+                    <h4 class="fw-bold text-info mb-0">{{ $stats['rooms_count'] }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Filter Card -->
 <div class="card shadow-sm border-0 mb-4">
@@ -74,8 +133,12 @@
                             <td class="ps-3 text-muted fw-bold">#{{ $doctor->id }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 42px; height: 42px; border: 1px solid #e2e8f0;">
-                                        <i class="bi bi-person-fill fs-5"></i>
+                                    <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center fw-bold overflow-hidden" style="width: 42px; height: 42px; border: 1px solid #e2e8f0;">
+                                        @if($doctor->avatar_url)
+                                            <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->full_name_with_title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        @else
+                                            <i class="bi bi-person-fill fs-5"></i>
+                                        @endif
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark">{{ $doctor->full_name_with_title }}</div>

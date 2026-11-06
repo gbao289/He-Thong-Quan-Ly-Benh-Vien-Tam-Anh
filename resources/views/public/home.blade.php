@@ -129,7 +129,7 @@
             <span class="text-primary text-uppercase fw-bold small">Đội ngũ y tế</span>
             <h3 class="fw-bold text-dark mb-0">BÁC SĨ TIÊU BIỂU</h3>
         </div>
-        <a href="{{ route('booking.create') }}" class="btn btn-outline-primary btn-sm rounded-pill">
+        <a href="{{ route('public.doctors.index') }}" class="btn btn-outline-primary btn-sm rounded-pill">
             Xem tất cả bác sĩ <i class="bi bi-arrow-right"></i>
         </a>
     </div>
@@ -139,16 +139,23 @@
             <div class="col-lg-3 col-md-6">
                 <div class="card h-100 border-0 shadow-sm text-center">
                     <div class="card-body p-4 d-flex flex-column">
-                        <div class="rounded-circle bg-light text-primary d-inline-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 72px; height: 72px;">
-                            <i class="bi bi-person-badge fs-1 text-primary"></i>
+                        <div class="rounded-circle bg-light text-primary d-inline-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm overflow-hidden" style="width: 72px; height: 72px;">
+                            @if($doctor->avatar_url)
+                                <img src="{{ $doctor->avatar_url }}" alt="{{ $doctor->full_name_with_title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            @else
+                                <i class="bi bi-person-badge fs-1 text-primary"></i>
+                            @endif
                         </div>
                         <span class="badge bg-light text-muted border mx-auto mb-2">{{ $doctor->qualification }}</span>
                         <h5 class="fw-bold text-dark mb-1">{{ $doctor->user->name ?? 'Bác sĩ' }}</h5>
                         <span class="text-primary small fw-semibold mb-2">{{ $doctor->specialty->name ?? 'Đa khoa' }}</span>
                         <p class="text-muted small mb-3">Phòng: <strong>{{ $doctor->room_number }}</strong> &bull; Giá khám: {{ number_format($doctor->consultation_fee, 0, ',', '.') }} đ</p>
-                        <div class="mt-auto">
-                            <a href="{{ route('booking.create', ['specialty_id' => $doctor->specialty_id, 'doctor_id' => $doctor->id]) }}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                        <div class="mt-auto d-grid gap-2">
+                            <a href="{{ route('booking.create', ['specialty_id' => $doctor->specialty_id, 'doctor_id' => $doctor->id]) }}" class="btn btn-primary btn-sm rounded-pill">
                                 <i class="bi bi-calendar-plus me-1"></i> Đặt lịch bác sĩ
+                            </a>
+                            <a href="{{ route('public.doctors.show', $doctor) }}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                Xem hồ sơ chi tiết
                             </a>
                         </div>
                     </div>

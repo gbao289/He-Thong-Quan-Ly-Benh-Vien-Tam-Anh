@@ -5,7 +5,56 @@
 @section('content')
 <x-page-header title="Bảng Điều Khiển Quản Trị" subtitle="Tổng quan hệ thống tiếp nhận, điều phối và khám chữa bệnh ngoại trú" />
 
-<!-- KPI Stat Cards -->
+<div class="card shadow-sm border-0 mb-4 bg-white">
+    <div class="card-body">
+        <form action="{{ route('admin.reports.export') }}" method="GET" class="row g-3 align-items-end">
+            <div class="col-12">
+                <h6 class="fw-bold mb-1"><i class="bi bi-download text-primary me-2"></i>Xuất báo cáo</h6>
+                <p class="small text-muted mb-0">Chọn báo cáo và khoảng thời gian, sau đó xuất Excel hoặc mở hộp thoại in để lưu PDF.</p>
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="reportType" class="form-label small fw-semibold">Loại báo cáo</label>
+                <select id="reportType" name="report" class="form-select" required>
+                    <option value="patients">Danh sách bệnh nhân</option>
+                    <option value="appointments">Lịch khám</option>
+                    <option value="doctors">Danh sách / thống kê bác sĩ</option>
+                    <option value="examination-status">Tình trạng khám bệnh</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label for="reportDateFrom" class="form-label small fw-semibold">Từ ngày</label>
+                <input id="reportDateFrom" type="date" name="date_from" class="form-control"
+                       value="{{ now()->startOfMonth()->toDateString() }}" required>
+            </div>
+            <div class="col-6 col-md-3">
+                <label for="reportDateTo" class="form-label small fw-semibold">Đến ngày</label>
+                <input id="reportDateTo" type="date" name="date_to" class="form-control"
+                       value="{{ now()->toDateString() }}" required>
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Xuất dữ liệu
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end w-100">
+                        <li><button class="dropdown-item" type="submit" name="format" value="pdf">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>PDF
+                        </button></li>
+                        <li><button class="dropdown-item" type="submit" name="format" value="excel">
+                            <i class="bi bi-file-earmark-excel text-success me-2"></i>Excel (.xlsx)
+                        </button></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-12 small text-muted">
+                Tổng số bệnh nhân là báo cáo danh sách theo ngày tạo hồ sơ; báo cáo bác sĩ gồm danh sách và lượt khám trong kỳ.
+                Do hệ thống chưa có module hóa đơn/thanh toán, chưa thể xuất doanh thu thực tế hoặc trạng thái thanh toán.
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hàng 1: Thẻ KPI thống kê chính -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
         <div class="card shadow-sm border-0 bg-primary text-white p-3">

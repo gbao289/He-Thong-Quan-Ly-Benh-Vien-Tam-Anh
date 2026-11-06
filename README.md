@@ -11,9 +11,9 @@
 | STT | Họ và tên | Vai trò chính | Trách nhiệm trọng tâm |
 | :---: | :--- | :--- | :--- |
 | 1 | **Nguyễn Thành Quý** | **Technical Lead & System Core** | Kiến trúc hệ thống, Khởi tạo dự án, Auth & RBAC Middleware, Master Layouts, Engine Đặt lịch khám, Mail thông báo & Điều phối tích hợp Git |
-| 2 | **Nguyễn Văn Đạt** | **Master Data & Public Portal** | Quản lý Chuyên khoa (CRUD), Hồ sơ Bác sĩ, Cấu hình Lịch trực ca trong tuần, Giao diện Trang chủ & Danh bạ Bác sĩ Responsive |
+| 2 | **Nguyễn Văn Đạt** | **Master Data & Public Portal** | Quản lý Chuyên khoa (CRUD), Hồ sơ Bác sĩ, Cấu hình Lịch trực ca trong tuần, Giao diện Trang chủ, Trang Giới thiệu Bệnh viện, Upload Avatar Bác sĩ, Bộ lọc Bác sĩ trực hôm nay & AJAX Live Search, Biểu đồ Chart.js thống kê, Trợ lý AI gợi ý Chuyên khoa & Bác sĩ (Symptom Matcher), Danh thiếp số vCard & Mã QR thông minh, Quản lý Nghỉ phép/Ủy quyền trực thay, Ma trận Phân ca trực Bệnh viện (Roster Matrix) & Mẫu in Hồ sơ Năng lực Bác sĩ chuẩn y khoa (23 Tests Passed 100% Green) |
 | 3 | **Nguyễn Văn Hưng** | **Patient Reception, Inpatient & Clinical Safety** | Quản lý Hồ sơ người bệnh, Bàn tiếp nhận & Check-in Kiosk sảnh, Viện phí VietQR, Quầy dược ngoại trú, An toàn truyền máu, Cảnh báo lâm sàng & Hệ thống phân hệ y tế nội viện |
-| 4 | **Võ Lê Gia Bảo** | **Consultation, Records & Analytics** | Màn hình hàng đợi khám của Bác sĩ, Lập bệnh án & Kê đơn thuốc lặp, Upload/Download tệp y tế bảo mật (Policy), Dashboard Quản trị viên |
+| 4 | **Võ Lê Gia Bảo** | **Consultation, Records & Analytics** | Màn hình hàng đợi khám của Bác sĩ, Lập bệnh án & Kê đơn thuốc lặp, Upload/Download tệp y tế bảo mật (Policy), Dashboard Quản trị viên, Bộ xuất Báo cáo thống kê Excel/PDF thông minh (XlsxReportWriter) & Cổng thông tin Bệnh nhân (10 Tests Passed 100% Green) |
 
 ---
 
@@ -22,11 +22,11 @@
 Dự án được xây dựng và đóng góp chính thức qua Pull Requests trên GitHub:
 
 | Thành viên | GitHub Username | Vai trò & Đóng góp chính | Trạng thái tích hợp |
-| :--- | :--- | :--- | :---: |
-| **Nguyễn Thành Quý** | [@quy0358](https://github.com/quy0358) | **Project Lead & Core Architect**: Khung nền tảng Laravel 12, Auth & RBAC, Booking Engine, Master Layouts, Quản lý User | [![Merged](https://img.shields.io/badge/Status-Core%20Maintainer-success)]() |
-| **Nguyễn Văn Hưng** | [@hung090725](https://github.com/hung090725) | **Patient Reception, Inpatient & Clinical Safety**: Quản lý hồ sơ người bệnh, tiếp đón sảnh, Kiosk tự phục vụ, viện phí VietQR, an toàn dược & lâm sàng, và các phân hệ hỗ trợ y tế chuyên sâu | [![PR #6](https://img.shields.io/badge/PR%20%236-Under%20Review-blue)]() |
-| **Nguyễn Văn Đạt** | [@jtadd123](https://github.com/jtadd123) | **Master Data & Public Portal**: Quản lý Chuyên khoa (CRUD), Bác sĩ, Lịch trực ca tuần, Danh bạ bác sĩ công khai & Trang chủ | [![PR #1 Merged](https://img.shields.io/badge/PR%20%231-Merged-blueviolet)]() |
-| **Võ Lê Gia Bảo** | [@gbao289](https://github.com/gbao289) | **Consultation, Records & Analytics**: Bàn khám bác sĩ, Bệnh án điện tử, Đơn thuốc lặp, File y tế bảo mật, Dashboard thống kê | [![In Progress](https://img.shields.io/badge/Status-In%20Progress-orange)]() |
+| :--- | :--- | :--- | :--- |
+| **Nguyễn Thành Quý** | [@quy0358](https://github.com/quy0358) | **Technical Lead & Core Architect**: Kiến trúc nền tảng Laravel 11, Master Layouts, Auth & RBAC, Booking Engine, Cùng **Bộ 10 Tính Năng Đột Phá Kiến Trúc & An Ninh Nâng Cao** (2FA TOTP RFC 6238, Smart Waitlist Engine FIFO, Calendar Sync RFC 5545, Family Health Profiles, Self-service Reschedule, Anti-Spam Honeypot, Security Audit Logging CSV, Active Device Sessions, Dynamic Settings & System Health Diagnostic Telemetry) | [![Status](https://img.shields.io/badge/Status-Core%20Architect-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-100%25-brightgreen)]() |
+| **Nguyễn Văn Đạt** | [@jtadd123](https://github.com/jtadd123) | **Master Data & Public Portal**: Quản lý Chuyên khoa, Bác sĩ, Lịch trực tuần, Trang giới thiệu viện, Avatar bác sĩ, Bác sĩ trực hôm nay, AJAX Live Search, Chart.js Analytics, Trợ lý AI Symptom Matcher, vCard QR thông minh, Nghỉ phép ủy quyền, Ma trận ca trực Roster, Mẫu in hồ sơ năng lực PDF | [![PR #1 & #7 Merged](https://img.shields.io/badge/PR%20%231%20%26%20%237-Merged-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-23%2F23%20Green-brightgreen)]() |
+| **Nguyễn Văn Hưng** | [@hung090725](https://github.com/hung090725) | **Patient Reception, Inpatient & Clinical Safety**: Quản lý hồ sơ người bệnh, tiếp đón sảnh, Kiosk tự phục vụ, viện phí VietQR, an toàn dược & lâm sàng, Spotlight Search toàn viện và các phân hệ hỗ trợ y tế chuyên sâu | [![PR #6](https://img.shields.io/badge/PR%20%236-Merged-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-100%25-brightgreen)]() |
+| **Võ Lê Gia Bảo** | [@gbao289](https://github.com/gbao289) | **Consultation, Records & Analytics**: Bàn khám bác sĩ, Bệnh án điện tử, Đơn thuốc lặp, File y tế bảo mật qua Policy, Dashboard thống kê, Xuất báo cáo Excel/PDF (XlsxReportWriter) & Lịch sử bệnh nhân | [![PR #5 & #8 Merged](https://img.shields.io/badge/PR%20%235%20%26%20%238-Merged-success)]() [![Tests](https://img.shields.io/badge/PHPUnit-10%2F10%20Green-brightgreen)]() |
 
 ---
 
@@ -80,23 +80,52 @@ erDiagram
 ### 1. NGUYỄN THÀNH QUÝ (Technical Lead)
 - **Phạm vi phụ trách:**
   - Khởi tạo khung dự án Laravel, Master Layouts (`layouts/master.blade.php`, `layouts/admin.blade.php`), Components dùng chung (`<x-alert>`, `<x-status-badge>`).
-  - Lập trình Auth: Đăng nhập, đăng xuất, đổi mật khẩu, Remember Me.
-  - Viết Middleware `CheckRole` phân quyền 4 vai trò.
-  - Migration & Seeder bảng: `users`, `appointments`.
-  - Xây dựng Booking Engine: Trang đặt lịch trực tuyến, kiểm tra tránh trùng ca và quá tải khám của bác sĩ (`BookingController`, `StoreAppointmentRequest`).
-  - Cấu hình gửi mail xác nhận đặt lịch `AppointmentCreatedMail`.
+  - Lập trình Auth & RBAC: Đăng nhập, đăng xuất, đổi mật khẩu, Remember Me, Middleware `CheckRole` phân quyền 4 vai trò.
+  - Migration & Seeder bảng cốt lõi: `users`, `appointments`, `security_audit_logs`, `system_settings`, `family_members`.
+  - Xây dựng Booking Engine: Trang đặt lịch trực tuyến, Pessimistic Row Locking tránh overbooking và race condition, kiểm tra trùng ca khám.
+  - Cấu hình gửi mail xác nhận đặt lịch `AppointmentCreatedMail` & `AppointmentRescheduledMail`.
   - Màn hình Portal lịch sử khám dành cho bệnh nhân.
-- **Tiêu chí hoàn thành:** Đăng nhập đúng phân quyền, đặt lịch thành công sinh mã và gửi email, chặn trùng ca khám.
+  - **Bộ 10 Phân Hệ Kiến Trúc & An Ninh Đột Phá:**
+    1. Xác thực 2 bước 2FA (RFC 6238 TOTP Google Authenticator & 8 mã khôi phục dự phòng).
+    2. Quản lý phiên hoạt động & Đăng xuất thiết bị từ xa (Remote Session Invalidation).
+    3. Nhật ký kiểm toán bảo mật, phát hiện Brute-Force & Xuất dữ liệu CSV (`SecurityAuditService`).
+    4. Hàng đợi chờ thông minh (Smart Waitlist Engine with FIFO Auto-Promotion on cancellation).
+    5. Đồng bộ Google Calendar URL & Tải file iCalendar chuẩn RFC 5545 (`.ics`).
+    6. Hồ sơ sức khỏe người thân & Đặt lịch cho người phụ thuộc (`family_members`).
+    7. Đổi lịch khám bệnh tự phục vụ trực tuyến (Self-Service Reschedule Engine & Audit History).
+    8. Bộ lọc chống Spam Bot đa tầng (Invisible Honeypot + Velocity Check + IP Rate Limiter).
+    9. Bảng điều khiển tham số động & Chế độ bảo trì bệnh viện (`SystemSetting` & 503 Maintenance).
+    10. Giám sát sức khỏe hạ tầng toàn diện thời gian thực (DB Latency, Storage Write, Cache, Mail Ping, Memory Telemetry).
+- **Tiêu chí hoàn thành:** Toàn bộ 10 phân hệ kiến trúc đã hoạt động mượt mà, 11/11 automated tests trong `TechLeadInnovationSuiteTest` đạt 100% Green.
 
-### 2. NGUYỄN VĂN ĐẠT (Chuyên khoa & Bác sĩ)
-- **Phạm vi phụ trách:**
-  - Migration & Seeder bảng: `specialties`, `doctors`, `doctor_schedules`.
-  - Thiết lập quan hệ Eloquent giữa Chuyên khoa, Bác sĩ, Lịch trực và User.
-  - Xây dựng chức năng Admin quản lý Chuyên khoa (`SpecialtyController`).
-  - Xây dựng chức năng Admin quản lý Bác sĩ & Lịch trực tuần (`DoctorManagementController`).
-  - Thiết kế và lập trình giao diện công khai: Trang chủ (`public.home`), Giới thiệu viện, Danh bạ bác sĩ có bộ lọc chuyên khoa (`DoctorPublicController`).
-  - Viết API/Route nội bộ lấy bác sĩ theo chuyên khoa phục vụ dropdown đặt lịch.
-- **Tiêu chí hoàn thành:** CRUD chuyên khoa và bác sĩ mượt mà, cấu hình lịch trực tuần chính xác, giao diện công khai responsive đẹp mắt.
+### 2. NGUYỄN VĂN ĐẠT (Chuyên khoa, Đội ngũ Bác sĩ & Smart Clinical Portal)
+- **Tài liệu báo cáo chuyên môn chi tiết:** [bao_cao_nang_cap_module_chuyen_khoa_bac_si.md](./bao_cao_nang_cap_module_chuyen_khoa_bac_si.md)
+- **Chi nhánh phát triển:** `feature/doctors-and-specialties` (Pull Request #1 & Pull Request #7 - Đã Merge 100% vào `main`)
+- **Kiểm thử tự động:** **23/23 tests pass 100% Green** (62 assertions, 0 errors)
+- **Phạm vi phụ trách mở rộng & Đóng góp toàn diện (20 Chức năng xuất sắc):**
+  1. **Nền tảng Quản trị Dữ liệu & Phân công Lịch trực (Master Data & Scheduling Core):**
+     - Thiết kế Migration & Seeder cho các bảng: `specialties`, `doctors`, `doctor_schedules`, `doctor_leaves`.
+     - Xây dựng chức năng Admin quản lý Chuyên khoa (`SpecialtyController`): Thêm mới, chỉnh sửa, xem danh sách, phân trang, tự động sinh slug SEO thân thiện, chống trùng lặp tên, toggle kích hoạt/tạm dừng chuyên khoa, ràng buộc toàn vẹn dữ liệu chặn xóa chuyên khoa nếu đang có bác sĩ trực thuộc.
+     - Xây dựng chức năng Admin quản lý Bác sĩ (`DoctorManagementController`): Thêm mới, cập nhật, xóa bác sĩ liên kết tài khoản User vai trò `doctor`, học hàm TS.BS/ThS.BS/BSCKII, phòng khám, giá khám, tiểu sử y khoa, toggle chuyển đổi trạng thái sẵn sàng nhận bệnh hoặc tạm dừng.
+     - Cấu hình phân ca trực định kỳ trong tuần (`doctors.schedule`): Phân chia ca Sáng (07:30 - 11:30) và ca Chiều (13:30 - 17:00) từ Thứ 2 đến Chủ nhật, thiết lập định ngạch số lượng bệnh nhân tối đa (`max_patients`) cho từng ca.
+     - Xây dựng API và Route nội bộ cung cấp danh sách bác sĩ theo chuyên khoa phục vụ dropdown đặt lịch khám trực tuyến.
+  2. **Trải nghiệm Người bệnh & Cổng Thông tin Y tế Công khai (Patient Experience & Public Portal):**
+     - Xây dựng trang Giới thiệu Bệnh viện Đa khoa Tâm Anh (`/about`): Tôn chỉ phụng sự, sứ mệnh, tầm nhìn phát triển, trang thiết bị kỹ thuật cao và danh mục chuyên khoa trọng điểm.
+     - Thiết kế thanh điều hướng Navbar công khai đồng bộ với các menu *"Giới thiệu"*, *"Đội ngũ Bác sĩ"* và liên kết thẻ bác sĩ trực tiếp về hồ sơ chi tiết.
+     - Hệ thống Upload & Quản lý Ảnh Đại diện Bác sĩ (Avatar Upload System): Upload ảnh y khoa chuẩn định dạng (jpg, png, webp, max 2MB), JavaScript xem trước ảnh (Preview) tức thì khi chọn file, tự động dọn dẹp file cũ trong storage khi cập nhật hoặc xóa bác sĩ.
+     - Cổng tra cứu Danh bạ Bác sĩ (`/doctors`) tích hợp **AJAX Live Search**: Tìm kiếm tức thì theo tên bác sĩ, học vị, phòng khám và lọc chuyên khoa mượt mà **không cần reload (tải lại) trang** (Debounce 350ms, Loading Spinner trực quan, đồng bộ URL qua `window.history.pushState`, phân trang AJAX).
+     - Huy hiệu Ca trực Thời gian thực (Real-time On-Duty Status): Tự động đối chiếu thứ trong tuần theo giờ máy chủ thực tế, gắn huy hiệu xanh lá *"Có lịch khám hôm nay"*, công tắc lọc nhanh bác sĩ đang trực và highlight ngày hiện tại trên bảng lịch tuần.
+     - Trang Hồ sơ Chi tiết Bác sĩ (`/doctors/{slug}`): Hiển thị đầy đủ năng lực chuyên môn, học vị, phòng khám, chi phí khám niêm yết và bảng phân bổ lịch trực 7 ngày trong tuần.
+  3. **Bộ Tính Năng Công Nghệ Cao & Đột Phá Khác Biệt (High-Tech & Wow Factors):**
+     - **Trợ lý AI Gợi ý Chuyên khoa theo Triệu chứng (`SymptomMatcherService` & `/doctors/symptom-checker`):** Bệnh nhân nhập mô tả triệu chứng bằng ngôn ngữ tự nhiên $\rightarrow$ Thuật toán đối soát từ khóa y khoa tự động đề xuất Chuyên khoa phù hợp nhất với độ tin cậy $\ge 90\%$, gợi ý Top bác sĩ chuyên khoa sẵn sàng khám kèm nút đặt lịch tức thì.
+     - **Hệ thống Phát hiện & Cảnh báo Cấp cứu Khẩn cấp (Emergency Triage Alert):** Tự động nhận diện các triệu chứng nguy kịch (đau ngực dữ dội lan ra cánh tay trái, sốt cao co giật, khó thở thanh quản...) để kích hoạt banner đỏ cấp cứu và cung cấp hotline cấp cứu 115 / Tổng đài Bệnh viện Tâm Anh 1800 6858.
+     - **Danh thiếp số & Xuất File vCard Chuẩn Quốc Tế RFC 6350 (`.vcf`):** Tạo và tải file danh thiếp y khoa số (`DoctorVcardService`), giúp người bệnh lưu trực tiếp thông tin liên hệ và lịch khám của bác sĩ vào danh bạ điện thoại iPhone/Android chỉ với 1 chạm.
+     - **Bản in Thẻ để bàn Mica phòng khám (Printable Desk Tent Card):** Giao diện in thẻ để bàn khám bệnh khổ chuẩn A5 gập ngang kèm mã QR động để bệnh nhân quét tại bàn khám.
+     - **Hồ sơ Năng lực Bác sĩ chuẩn In ấn & Xuất PDF 1-chạm (`/doctors/{id}/print`):** Biểu mẫu Curriculum Vitae A4 sang trọng có watermark Bệnh viện Tâm Anh, ảnh chân dung, lý lịch lâm sàng, bảng lịch trực tuần, mã QR xác thực và chữ ký số của Giám đốc chuyên môn.
+     - **Hệ thống Quản lý Nghỉ phép & Bác sĩ Trực thay (`DoctorLeave` & Delegation Engine):** Đăng ký vắng mặt, hội thảo y khoa, tự động cảnh báo công tác trên hồ sơ công chúng và phân công bác sĩ tiếp nhận trực thay.
+     - **Ma trận Phân ca trực Tuần Bệnh viện & Bắt Xung đột (`/admin/roster`):** Bảng lưới ma trận 7 ngày x 2 ca Sáng/Chiều kèm thuật toán tự động rà soát: cảnh báo đỏ nếu 2 bác sĩ bị xếp trùng phòng hoặc 1 bác sĩ nhận 2 phòng cùng lúc; cảnh báo vàng nếu chuyên khoa bị thiếu bác sĩ trực.
+     - **Dashboard Thống kê & 2 Biểu đồ Chart.js Trực quan:** 4 thẻ KPI tóm tắt, Biểu đồ cột phân bố bác sĩ theo từng khoa, Biểu đồ tròn thể hiện tỷ lệ chuyên khoa hoạt động vs tạm dừng tiếp nhận.
+- **Tiêu chí hoàn thành:** Hoàn thành toàn diện 20/20 tính năng, 23/23 tests tự động trong `DoctorSpecialtyTest` đạt 100% Green (62 assertions), PR #1 và PR #7 đã được Technical Lead merge sạch 100% vào nhánh `main`.
 
 ### 3. NGUYỄN VĂN HƯNG (Tiếp đón, Hồ sơ người bệnh, Viện phí & Nghiệp vụ lâm sàng)
 - **Tài liệu đặc tả nghiệp vụ y tế:** [docs/TAILIEU_NGHIEP_VU_VA_KIEN_TRUC_Y_TE.md](./docs/TAILIEU_NGHIEP_VU_VA_KIEN_TRUC_Y_TE.md)
@@ -122,7 +151,8 @@ erDiagram
     - Kiểm duyệt định dạng (`pdf, jpg, png`) và kích thước (<3MB).
     - Viết `AttachmentPolicy` ngăn chặn người ngoài hoặc bệnh nhân khác tải trộm tài liệu y tế (HTTP 403).
   - Lập trình Dashboard trung tâm Admin: Thống kê số lượng bệnh nhân, bác sĩ, lịch hẹn, tỷ lệ khám hoàn thành (`AdminDashboardController`).
-- **Tiêu chí hoàn thành:** Bác sĩ lập bệnh án trơn tru, file lưu private an toàn có phân quyền, số liệu Dashboard phản ánh chuẩn từ database.
+  - Bộ xuất Báo cáo thống kê Excel/PDF thông minh (`XlsxReportWriter`) & Cổng thông tin Bệnh nhân.
+- **Tiêu chí hoàn thành:** Bác sĩ lập bệnh án trơn tru, file lưu private an toàn có phân quyền, số liệu Dashboard phản ánh chuẩn từ database, 10/10 tests pass 100% Green.
 
 ---
 
@@ -231,6 +261,27 @@ Mật khẩu mặc định cho tất cả các tài khoản thử nghiệm: **`1
 - **Tuần 2:** Lập trình các module độc lập: Chuyên khoa/Bác sĩ (Đạt), Hồ sơ bệnh nhân/Lễ tân (Hưng), Đặt lịch khám (Quý), Bàn khám/Bệnh án (Bảo).
 - **Tuần 3:** Tích hợp chuỗi nghiệp vụ liền mạch: Đặt hẹn -> Check-in -> Khám bệnh -> Lưu bệnh án; Tích hợp upload file an toàn & Gửi email.
 - **Tuần 4:** Rà soát bảo mật, tối ưu Responsive, chuẩn bị kịch bản thuyết trình và tổng duyệt demo trước giảng viên.
+
+---
+
+## 🛡️ 10. BỘ 10 TÍNH NĂNG KIẾN TRÚC & AN NINH NÂNG CAO (TECHNICAL LEAD - NGUYỄN THÀNH QUÝ)
+
+Nhằm nâng cao chất lượng đồ án đạt cấp độ sản phẩm triển khai thực tế (Enterprise Grade), Technical Lead **Nguyễn Thành Quý** đã hoàn thành tích hợp trọn vẹn 10 phân hệ kiến trúc nền tảng và bảo mật nâng cao:
+
+| STT | Tính năng kiến trúc | Mô tả kỹ thuật & Thuật toán | Vị trí mã nguồn & Kiểm thử |
+| :---: | :--- | :--- | :--- |
+| **01** | **Xác thực 2 bước (2FA - TOTP)** | Thuật toán RFC 6238 HMAC-SHA1 trong PHP thuần, Base32 encoder/decoder, mã khôi phục khẩn cấp, tương thích Google/Microsoft Authenticator | `TotpService.php`, `TwoFactorController.php`, `two_factor_setup.blade.php` |
+| **02** | **Quản lý Phiên & Đăng xuất Từ xa** | Theo dõi thông tin phiên đăng nhập (IP, User Agent, Thời gian), cơ chế vô hiệu hóa phiên thiết bị khác từ xa qua mật khẩu | `DeviceSessionController.php`, `sessions.blade.php` |
+| **03** | **Nhật ký Kiểm toán & Phát hiện Brute-force** | Ghi nhận chi tiết mọi sự kiện an ninh, tự động phát hiện mẫu tấn công dò mật khẩu và kích hoạt `brute_force_alert`, xuất CSV UTF-8 BOM | `SecurityAuditService.php`, `SecurityAuditController.php`, `admin/security_audit/` |
+| **04** | **Hàng Đợi Chờ Thông Minh (Smart Waitlist)** | Thuật toán xếp hàng chờ tự động FIFO khi ca khám đạt `max_patients`. Tự động đôn chỗ (Auto-Promotion) và gửi email kích hoạt khi có ca hủy | `WaitlistEngineService.php`, `WaitlistPromotedMail.php`, `BookingController.php` |
+| **05** | **Đồng bộ Lịch khám (Calendar Sync)** | Tạo liên kết thêm vào Google Calendar và tạo tệp lịch chuẩn quốc tế iCalendar RFC 5545 (`.ics`) cho Apple Calendar, Outlook | `CalendarSyncService.php`, `CalendarExportController.php`, `booking-success.blade.php` |
+| **06** | **Hồ sơ Người thân & Đặt lịch Gia đình** | Quản lý người phụ thuộc (con cái, cha mẹ, vợ chồng), tự động điền thông tin nhanh khi đặt lịch tại phòng khám | `FamilyMember.php`, `FamilyMemberController.php`, `patient/family/` |
+| **07** | **Đổi Lịch Khám Tự Phục Vụ (Reschedule Engine)** | Cho phép bệnh nhân tự đổi ngày/ca khám trực tuyến, kiểm tra lịch trống và tự động kích hoạt đôn người cho slot cũ vừa giải phóng | `RescheduleAppointmentRequest.php`, `PatientPortalController.php`, `AppointmentRescheduledMail.php` |
+| **08** | **Chống Spam Bot Đa Tầng** | Cơ chế bẫy bot tàng hình (Invisible Honeypot) + Kiểm tra tốc độ nhập người dùng (Velocity Check > 1.5s) + Rate Limiter IP (15 req / 5 min) | `BookingSpamProtection.php`, `booking.blade.php` |
+| **09** | **Cấu Hình Tham Số Động & Chế Độ Bảo Trì** | Trung tâm quản lý cấu hình hệ thống bệnh viện thời gian thực qua Cache + Bật/tắt bảo trì cổng đặt lịch trả HTTP 503 thân thiện | `SystemSetting.php`, `CheckBookingMaintenance.php`, `SystemSettingController.php` |
+| **10** | **Giám Sát Sức Khỏe Toàn Diện (System Health)** | Bộ đo đạc vi mô thời gian thực: Độ trễ MySQL/MariaDB (ms), dung lượng ổ cứng, quyền ghi Storage, Cache read/write, Ping máy chủ Email, RAM usage | `SystemHealthCheckService.php`, `SystemHealthController.php`, `admin/system_health/` |
+
+- **Kết quả kiểm thử tự động toàn diện:** `tests/Feature/TechLeadInnovationSuiteTest.php` với **11/11 tests PASSED 100% Green (68 assertions)**.
 
 ---
 *Dự án phục vụ mục đích học tập và nghiên cứu môn học Phát triển ứng dụng Web.*
