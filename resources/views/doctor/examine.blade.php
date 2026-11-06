@@ -11,6 +11,29 @@
     </x-slot:actions>
 </x-page-header>
 
+<!-- Emergency Clinical Safety Alert Banner (CDSS) -->
+@if($appointment->patientProfile->hasAllergies())
+    <div class="alert alert-danger border-2 border-danger shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-danger text-white p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-shield-exclamation fs-3"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-danger mb-0 text-uppercase">
+                    Cảnh Báo An Toàn Người Bệnh: Tiền Sử Dị Ứng Thuốc / Thức Ăn!
+                </h6>
+                <div class="fs-6 fw-bold text-dark mt-1">
+                    {{ $appointment->patientProfile->allergies }}
+                </div>
+                <small class="text-danger">* Bác sĩ thận trọng khi kê đơn, tuyệt đối tránh các nhóm hoạt chất gây nguy cơ sốc phản vệ.</small>
+            </div>
+        </div>
+        <span class="badge bg-danger text-white px-3 py-2 fs-6">
+            <i class="bi bi-exclamation-octagon me-1"></i> BÁO ĐỘNG DỊ ỨNG
+        </span>
+    </div>
+@endif
+
 <div class="row g-4 mb-5">
     <!-- Left Column: Patient Profile & Initial Vitals -->
     <div class="col-lg-4">

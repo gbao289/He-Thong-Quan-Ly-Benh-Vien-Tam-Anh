@@ -113,6 +113,125 @@ class PatientPortalController extends Controller
             'cancellation_reason' => 'Bệnh nhân tự hủy: ' . $request->input('cancellation_reason'),
         ]);
 
+        // Auto-promote next candidate from smart waitlist
+        try {
+            $dateStr = $appointment->appointment_date instanceof \Carbon\Carbon
+                ? $appointment->appointment_date->toDateString()
+                : (string) $appointment->appointment_date;
+
+            app(\App\Services\WaitlistEngineService::class)->promoteNextCandidate(
+                $appointment->doctor_id,
+                $dateStr,
+                $appointment->shift
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Waitlist auto-promotion failed on patient cancel: " . $e->getMessage());
+        }
+
         return back()->with('success', "Đã hủy lịch hẹn {$appointment->appointment_code} thành công.");
+    }
+
+    /**
+     * Show reschedule appointment page for patient.
+     */
+    public function showReschedule(Appointment $appointment): View
+    {
+        $user = Auth::user();
+        $patientProfile = PatientProfile::where('user_id', $user->id)->first();
+
+        if (!$patientProfile || $appointment->patient_profile_id !== $patientProfile->id) {
+            abort(403, 'Bạn không có quyền đổi lịch hẹn này.');
+        }
+
+        if (!in_array($appointment->status, [Appointment::STATUS_PENDING, Appointment::STATUS_CONFIRMED])) {
+            return redirect()->route('patient.history')->with('error', 'Chỉ có thể đổi lịch hẹn đang chờ tiếp nhận hoặc đã xác nhận.');
+        }
+
+        $appointment->load(['doctor.user', 'specialty']);
+
+        return view('patient.reschedule', compact('appointment', 'patientProfile'));
+    }
+
+    /**
+     * Process reschedule appointment request.
+     */
+    public function processReschedule(\App\Http\Requests\RescheduleAppointmentRequest $request, Appointment $appointment): RedirectResponse
+    {
+        $user = Auth::user();
+        $patientProfile = PatientProfile::where('user_id', $user->id)->first();
+
+        if (!$patientProfile || $appointment->patient_profile_id !== $patientProfile->id) {
+            abort(403, 'Bạn không có quyền thực hiện đổi lịch hẹn này.');
+        }
+
+        if (!in_array($appointment->status, [Appointment::STATUS_PENDING, Appointment::STATUS_CONFIRMED])) {
+            return back()->with('error', 'Chỉ có thể đổi lịch hẹn đang chờ tiếp nhận hoặc đã xác nhận.');
+        }
+
+        $validated = $request->validated();
+        $newDate = \Carbon\Carbon::parse($validated['appointment_date']);
+        $dayOfWeek = strtolower($newDate->englishDayOfWeek);
+
+        // Check if doctor has schedule on new date
+        $schedule = \App\Models\DoctorSchedule::where('doctor_id', $appointment->doctor_id)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('shift', $validated['shift'])
+            ->where('is_active', true)
+            ->first();
+
+        if (!$schedule) {
+            return back()->withInput()->with('error', 'Bác sĩ không có lịch khám trong ca ' . ($validated['shift'] === 'morning' ? 'Sáng' : 'Chiều') . ' ngày ' . $newDate->format('d/m/Y') . '.');
+        }
+
+        // Check capacity on new date
+        $existingCount = Appointment::where('doctor_id', $appointment->doctor_id)
+            ->whereDate('appointment_date', $newDate->toDateString())
+            ->where('shift', $validated['shift'])
+            ->where('id', '!=', $appointment->id)
+            ->where('status', '!=', Appointment::STATUS_CANCELLED)
+            ->count();
+
+        if ($existingCount >= $schedule->max_patients) {
+            return back()->withInput()->with('error', "Ca khám mục tiêu ngày {$newDate->format('d/m/Y')} đã nhận đủ số lượng ({$schedule->max_patients}/{$schedule->max_patients} bệnh nhân). Vui lòng chọn ngày hoặc ca khác.");
+        }
+
+        $oldDate = $appointment->appointment_date instanceof \Carbon\Carbon
+            ? $appointment->appointment_date->toDateString()
+            : (string) $appointment->appointment_date;
+        $oldShift = $appointment->shift;
+
+        // Perform reschedule update
+        $appointment->update([
+            'appointment_date' => $newDate->toDateString(),
+            'shift' => $validated['shift'],
+            'rescheduled_at' => now(),
+            'rescheduled_from_code' => $appointment->appointment_code,
+            'symptom_description' => $validated['reschedule_reason']
+                ? $appointment->symptom_description . " [Đổi lịch: {$validated['reschedule_reason']}]"
+                : $appointment->symptom_description,
+        ]);
+
+        // Promote waitlist on the old slot since a spot just opened up!
+        try {
+            app(\App\Services\WaitlistEngineService::class)->promoteNextCandidate(
+                $appointment->doctor_id,
+                $oldDate,
+                $oldShift
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Waitlist auto-promotion failed on reschedule: " . $e->getMessage());
+        }
+
+        // Send notification email
+        if ($appointment->patientProfile && $appointment->patientProfile->email) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($appointment->patientProfile->email)
+                    ->send(new \App\Mail\AppointmentRescheduledMail($appointment, $oldDate, $oldShift));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Reschedule mail failed: " . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('patient.history')->with('success', "Đổi lịch khám cho phiếu {$appointment->appointment_code} thành công sang ngày {$newDate->format('d/m/Y')}!");
     }
 }

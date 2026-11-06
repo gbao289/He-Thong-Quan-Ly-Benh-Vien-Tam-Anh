@@ -5,6 +5,9 @@
 @section('content')
 <x-page-header title="Lịch Sử Khám Bệnh" subtitle="Theo dõi danh sách các cuộc hẹn, tiến trình khám và kết quả điều trị của bạn">
     <x-slot:actions>
+        <a href="{{ route('patient.family.index') }}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-people-fill"></i> Hồ sơ người thân
+        </a>
         <a href="{{ route('booking.create') }}" class="btn btn-primary d-inline-flex align-items-center gap-1">
             <i class="bi bi-calendar-plus-fill"></i> Đặt lịch khám mới
         </a>
@@ -48,6 +51,9 @@
     <div class="d-flex flex-wrap gap-2 mb-3">
         <a href="{{ route('patient.history') }}" class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
             Tất cả
+        </a>
+        <a href="{{ route('patient.history', ['status' => 'waitlist']) }}" class="btn btn-sm {{ request('status') === 'waitlist' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }} rounded-pill px-3">
+            Danh sách chờ (Waitlist)
         </a>
         <a href="{{ route('patient.history', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') === 'pending' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }} rounded-pill px-3">
             Chờ tiếp nhận
@@ -107,6 +113,11 @@
                                         <a href="{{ route('patient.appointments.show', $app) }}" class="btn btn-outline-primary" title="Xem kết quả & đơn thuốc">
                                             <i class="bi bi-eye"></i> Xem
                                         </a>
+                                        @if(in_array($app->status, ['pending', 'confirmed']))
+                                            <a href="{{ route('patient.appointments.reschedule', $app) }}" class="btn btn-outline-warning text-dark" title="Đổi ngày / ca khám">
+                                                <i class="bi bi-calendar2-range"></i> Đổi
+                                            </a>
+                                        @endif
                                         @if($app->status === 'pending')
                                             <button type="button" class="btn btn-outline-danger" title="Hủy lịch hẹn" data-bs-toggle="modal" data-bs-target="#cancelModal-{{ $app->id }}">
                                                 <i class="bi bi-x-circle"></i>

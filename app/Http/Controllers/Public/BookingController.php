@@ -29,13 +29,18 @@ class BookingController extends Controller
     {
         $specialties = Specialty::where('is_active', true)->orderBy('name')->get();
 
-        $selectedSpecialtyId = $request->query('specialty_id');
-        $selectedDoctorId = $request->query('doctor_id');
+        $selectedSpecialtyId = old('specialty_id', $request->query('specialty_id'));
+        $selectedDoctorId = old('doctor_id', $request->query('doctor_id'));
 
         // Pre-fill patient information if patient is logged in
         $patientProfile = null;
+        $familyMembers = collect();
         if (Auth::check() && Auth::user()->isPatient()) {
             $patientProfile = PatientProfile::where('user_id', Auth::id())->first();
+            $familyMembers = \App\Models\FamilyMember::with('patientProfile')
+                ->where('user_id', Auth::id())
+                ->latest()
+                ->get();
         }
 
         $doctors = collect();
@@ -51,7 +56,8 @@ class BookingController extends Controller
             'doctors',
             'selectedSpecialtyId',
             'selectedDoctorId',
-            'patientProfile'
+            'patientProfile',
+            'familyMembers'
         ));
     }
 
@@ -84,12 +90,25 @@ class BookingController extends Controller
                     ->whereDate('appointment_date', $date->toDateString())
                     ->where('shift', $validated['shift'])
                     ->where('status', '!=', Appointment::STATUS_CANCELLED)
+                    ->where('status', '!=', 'waitlist')
                     ->lockForUpdate()
                     ->count();
 
+                $isWaitlist = false;
+                $waitlistPos = null;
+
                 if ($currentBookingsCount >= $schedule->max_patients) {
-                    $shiftVn = $validated['shift'] === 'morning' ? 'buổi sáng' : 'buổi chiều';
-                    throw new \Exception("Ca khám {$shiftVn} ngày {$date->format('d/m/Y')} của bác sĩ vừa nhận đủ số lượng tối đa ({$schedule->max_patients}/{$schedule->max_patients} bệnh nhân). Vui lòng chọn ca khám hoặc ngày khác.");
+                    if (\App\Models\SystemSetting::isTrue('enable_smart_waitlist', true) && request()->boolean('join_waitlist')) {
+                        $isWaitlist = true;
+                        $waitlistPos = (Appointment::where('doctor_id', $validated['doctor_id'])
+                            ->whereDate('appointment_date', $date->toDateString())
+                            ->where('shift', $validated['shift'])
+                            ->where('status', 'waitlist')
+                            ->max('waitlist_position') ?? 0) + 1;
+                    } else {
+                        $shiftVn = $validated['shift'] === 'morning' ? 'buổi sáng' : 'buổi chiều';
+                        throw new \Exception("Ca khám {$shiftVn} ngày {$date->format('d/m/Y')} của bác sĩ vừa nhận đủ số lượng tối đa ({$schedule->max_patients}/{$schedule->max_patients} bệnh nhân). Vui lòng chọn ca khám hoặc ngày khác.");
+                    }
                 }
 
                 // 3. Resolve or create Patient Profile securely (Preventing Profile Hijacking)
@@ -203,7 +222,9 @@ class BookingController extends Controller
                             'shift' => $validated['shift'],
                             'appointment_time' => $validated['appointment_time'] ?? null,
                             'symptom_description' => $validated['symptom_description'],
-                            'status' => Appointment::STATUS_PENDING,
+                            'status' => $isWaitlist ? 'waitlist' : Appointment::STATUS_PENDING,
+                            'waitlist_position' => $isWaitlist ? $waitlistPos : null,
+                            'waitlisted_at' => $isWaitlist ? now() : null,
                             'created_by_user_id' => Auth::id(),
                         ]);
                         break;
@@ -229,6 +250,11 @@ class BookingController extends Controller
                 }
             }
 
+            if ($appointment->status === 'waitlist') {
+                return redirect()->route('booking.success', ['code' => $appointment->appointment_code])
+                    ->with('warning', "Ca khám hiện tại đã đầy. Quý khách đã được ghi danh vào HÀNG ĐỢI CHỜ tự động (Vị trí #{$appointment->waitlist_position}). Khi có bệnh nhân hủy lịch, hệ thống sẽ tự động chuyển vị trí và gửi email thông báo!");
+            }
+
             return redirect()->route('booking.success', ['code' => $appointment->appointment_code])
                 ->with('success', 'Đăng ký đặt lịch khám thành công! Quý khách vui lòng lưu lại mã tra cứu.');
 
@@ -251,7 +277,11 @@ class BookingController extends Controller
             return redirect()->route('booking.create')->with('error', 'Không tìm thấy thông tin lịch hẹn yêu cầu.');
         }
 
-        return view('public.booking-success', compact('appointment'));
+        $calendarService = app(\App\Services\CalendarSyncService::class);
+        $googleCalendarUrl = $calendarService->generateGoogleCalendarUrl($appointment);
+        $icsDownloadUrl = route('calendar.ics', ['code' => $appointment->appointment_code]);
+
+        return view('public.booking-success', compact('appointment', 'googleCalendarUrl', 'icsDownloadUrl'));
     }
 
     /**
@@ -265,12 +295,12 @@ class BookingController extends Controller
 
         if ($keyword) {
             $keyword = trim($keyword);
-            // Search by exact appointment code or phone number (Masking & Clinical isolation enforced)
-            if (str_starts_with(strtoupper($keyword), 'AP-')) {
-                $appointment = Appointment::with(['patientProfile', 'doctor.user', 'specialty'])
-                    ->where('appointment_code', strtoupper($keyword))
-                    ->first();
-            } else {
+            // Search by exact appointment code first (supports AP-, WL-, TA-, etc.), then fallback to phone or patient_code
+            $appointment = Appointment::with(['patientProfile', 'doctor.user', 'specialty'])
+                ->where('appointment_code', strtoupper($keyword))
+                ->first();
+
+            if (!$appointment && !str_starts_with(strtoupper($keyword), 'AP-') && !str_starts_with(strtoupper($keyword), 'WL-') && !str_starts_with(strtoupper($keyword), 'TA-')) {
                 $appointments = Appointment::with(['patientProfile', 'doctor.user', 'specialty'])
                     ->whereHas('patientProfile', function ($q) use ($keyword) {
                         $q->where('phone', $keyword)
