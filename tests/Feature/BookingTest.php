@@ -64,10 +64,16 @@ class BookingTest extends TestCase
         ]);
 
         $response->assertSessionHas('success');
-        $appointment = Appointment::where('symptom_description', 'Sốt nhẹ và ho có đờm từ hôm qua')->first();
+        $appointment = Appointment::where('symptom_description', 'Sốt nhẹ và ho có đờm từ hôm qua')->latest('id')->first();
         $this->assertNotNull($appointment);
         $this->assertStringStartsWith('AP-', $appointment->appointment_code);
         $this->assertEquals(Appointment::STATUS_PENDING, $appointment->status);
+
+        // Verify the booking success page renders 200 OK with Google Calendar & .ics URLs
+        $successResponse = $this->get(route('booking.success', ['code' => $appointment->appointment_code]));
+        $successResponse->assertStatus(200);
+        $successResponse->assertSee($appointment->appointment_code);
+        $successResponse->assertSee('calendar.google.com/calendar/render', false);
 
         $patient = PatientProfile::where('phone', $uniquePhone)->first();
         $this->assertNotNull($patient);

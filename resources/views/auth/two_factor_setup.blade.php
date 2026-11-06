@@ -90,9 +90,16 @@
 
                                 <form action="{{ route('two-factor.confirm') }}" method="POST">
                                     @csrf
-                                    <label class="form-label fw-bold">Nhập mã xác nhận 6 chữ số từ ứng dụng:</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold mb-0">Nhập mã xác nhận 6 chữ số từ ứng dụng:</label>
+                                        @if(isset($currentOtp) && config('app.debug'))
+                                            <button type="button" class="btn btn-sm btn-warning text-dark fw-semibold py-0 px-2 rounded-pill" onclick="document.getElementById('totpConfirmCodeInput').value='{{ $currentOtp }}'">
+                                                <i class="bi bi-magic me-1"></i>Điền OTP Demo: <span class="font-monospace">{{ $currentOtp }}</span>
+                                            </button>
+                                        @endif
+                                    </div>
                                     <div class="d-flex gap-2">
-                                        <input type="text" name="code" class="form-control form-control-lg text-center font-monospace tracking-widest fw-bold" placeholder="000000" maxlength="6" required pattern="[0-9]{6}" autocomplete="off">
+                                        <input type="text" name="code" id="totpConfirmCodeInput" class="form-control form-control-lg text-center font-monospace tracking-widest fw-bold" placeholder="000000" maxlength="6" required pattern="[0-9]{6}" autocomplete="off">
                                         <button type="submit" class="btn btn-success px-4 fw-bold">
                                             <i class="bi bi-check2-circle me-1"></i>Kích hoạt 2FA
                                         </button>
